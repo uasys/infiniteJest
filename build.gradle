@@ -27,6 +27,7 @@ jastadd {
 	genDir = 'src/gen/java'
 	buildInfoDir = 'src/gen-res'
 	parser.name = 'JavaParser'
+
 }
 
 sourceSets.main {
@@ -38,8 +39,11 @@ sourceSets.main {
 		srcDir 'extendj/src/res'
 		srcDir jastadd.buildInfoDir
 	}
+	
+	dependencies {
+   		compile files('libs/soot-trunk.jar')
+	}
 }
-
 jar.manifest.attributes 'Main-Class': 'org.extendj.InfiniteJast'
 jar.destinationDir = projectDir
 
@@ -50,7 +54,7 @@ targetCompatibility = '1.7'
 task sourceZip(type: Zip) {
 	description 'Builds a Zip file with the entire repisotory (including the ExtendJ submodule).'
 	destinationDir = projectDir
-	archiveName = "extension-base.zip"
+	archiveName = "infiniteJast.zip"
 
 	from (projectDir) {
 		exclude '**/.git'
@@ -70,5 +74,9 @@ task sourceZip(type: Zip) {
 		exclude '**/*.swp'
 	}
 
-	into 'extension-base'
+	into 'infiniteJast'
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = "utf8"
 }

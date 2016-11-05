@@ -1,6 +1,7 @@
 package org.extendj;
 
 import org.extendj.ast.CompilationUnit;
+import soot.*;
 
 public class InfiniteJast extends JavaChecker {
 
