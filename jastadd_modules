@@ -1,0 +1,27 @@
+include("extendj/jastadd_modules") // Include the core ExtendJ modules.
+
+module "infiniteJast", { // TODO Replace with your own module name.
+
+	imports "java5 frontend"
+
+	java {
+		basedir "src/java/"
+		include "**/*.java"
+	}
+
+	jastadd {
+		basedir "src/jastadd/"
+		include "**/*.ast"
+		include "**/*.jadd"
+		include "**/*.jrag"
+	}
+
+	//scanner {
+	// TODO List your scanner specification additions here.
+	//}
+
+	//parser {
+	// TODO List your parser specification additions here.
+	//}
+}
+

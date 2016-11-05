@@ -1,0 +1,9 @@
+aspect InfiniteJast {
+
+  public void CompilationUnit.process() {
+	for (TypeDecl type : getTypeDeclList()) {
+		System.out.println("Type: " + type.name());
+	}
+  }
+
+}

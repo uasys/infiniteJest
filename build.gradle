@@ -1,0 +1,74 @@
+buildscript {
+	repositories.mavenCentral()
+	repositories.mavenLocal()
+	dependencies {
+		classpath 'org.jastadd:jastaddgradle:1.10.1'
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'jastadd'
+
+defaultTasks 'jar'
+
+if (!file('extendj/jastadd_modules').exists()) {
+	throw new GradleException('ExtendJ seems to be missing. Please run "git submodule init", then "git submodule update".')
+}
+
+jastadd {
+	configureModuleBuild()
+
+	modules 'jastadd_modules' // Load module specifications from this file.
+
+	// Target module to build:
+	module = 'infiniteJast' // TODO Replace with your own module name.
+
+	astPackage = 'org.extendj.ast'
+	genDir = 'src/gen/java'
+	buildInfoDir = 'src/gen-res'
+	parser.name = 'JavaParser'
+}
+
+sourceSets.main {
+	java {
+		srcDir 'extendj/src/frontend-main'
+		exclude 'org/extendj/PrettyPrintTask.java' // Avoid dependency on Apache Ant.
+	}
+	resources {
+		srcDir 'extendj/src/res'
+		srcDir jastadd.buildInfoDir
+	}
+}
+
+jar.manifest.attributes 'Main-Class': 'org.extendj.InfiniteJast'
+jar.destinationDir = projectDir
+
+// Java -source and -target version.
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
+
+task sourceZip(type: Zip) {
+	description 'Builds a Zip file with the entire repisotory (including the ExtendJ submodule).'
+	destinationDir = projectDir
+	archiveName = "extension-base.zip"
+
+	from (projectDir) {
+		exclude '**/.git'
+		exclude '**/.gitignore'
+		exclude '**/.gitattributes'
+		exclude '**/.gitmodules'
+		exclude 'build'
+		exclude 'bin'
+		exclude '.gradle'
+		exclude '.classpath'
+		exclude '.settings'
+		exclude '.project'
+		exclude 'src/gen'
+		exclude 'src/gen-res'
+		exclude '*.jar'
+		exclude '*.zip'
+		exclude '**/*.swp'
+	}
+
+	into 'extension-base'
+}
