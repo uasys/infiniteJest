@@ -45,6 +45,7 @@ sourceSets.main {
 	}
 }
 jar.manifest.attributes 'Main-Class': 'org.extendj.InfiniteJast'
+jar.manifest.attributes 'Class-Path': 'libs/soot-trunk.jar'
 jar.destinationDir = projectDir
 
 // Java -source and -target version.
@@ -52,7 +53,7 @@ sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
 
 task sourceZip(type: Zip) {
-	description 'Builds a Zip file with the entire repisotory (including the ExtendJ submodule).'
+	description 'Builds a Zip file with the entire repository (including the ExtendJ submodule).'
 	destinationDir = projectDir
 	archiveName = "infiniteJast.zip"
 
