@@ -4,3 +4,4 @@ src/gen-res/
 testfiles/
 *.jar
 .gradle
+sootOutput/
