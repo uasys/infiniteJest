@@ -1,3 +1,6 @@
 [submodule "extendj"]
 	path = extendj
 	url = https://bitbucket.org/extendj/extendj
+[submodule "regression-tests"]
+	path = regression-tests
+	url = https://bitbucket.org/extendj/regression-tests
