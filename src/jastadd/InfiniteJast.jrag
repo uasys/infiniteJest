@@ -25,10 +25,11 @@ aspect InfiniteJast {
   	//do I need to always load and support java.lang.Object and java.lang.System?
   	Scene.v().loadClassAndSupport("java.lang.Object");
     Scene.v().loadClassAndSupport("java.lang.System");
-    //this is not always true... or is it? When are classes private or protected?
-    sClass = new SootClass(jvmName(), soot.Modifier.PUBLIC);
-    //all Java classes by default extend java object
-    sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
+    sClass = new SootClass(this.getID(), this.flags());
+    sClass.setSuperclass(Scene.v().getSootClass(this.superclass().fullName()));
+    
+    //TODO: need to add implements...
+    List<Access> _implements = this.getImplementss();
     
     Scene.v().addClass(sClass);
     
@@ -52,21 +53,27 @@ aspect InfiniteJast {
   		getChild(i).jimplify(sClass);
   	}
   }
-    
+  
+  syn soot.Type TypeDecl.sootType() {
+  	return  RefType.v(this.typeName());
+  }
+  
+  syn java.util.List<Type> MethodDecl.getParameterListSoot() {
+  	List<ParameterDeclaration> params = this.getParameterList();
+  	java.util.List<Type> sootParams = new ArrayList<Type>();
+  	for (ParameterDeclaration param : params) {
+  		sootParams.add(param.type().sootType());
+  	}
+  	return sootParams;
+  }
+  
   public void MethodDecl.jimplify(SootClass sClass) {
- 	SootMethod method;
- 	List<ParameterDeclaration> params = this.getParameterList();
- 	java.util.List<Type> sootParams = new ArrayList<Type>();
- 	for(ParameterDeclaration param : params) {
- 		RefType type = RefType.v(param.type().prettyPrint());
- 		sootParams.add(type);
- 	}
- 	RefType retType = RefType.v(this.type().prettyPrint());
- 	method = new SootMethod(this.name(),
-		sootParams,
-    	retType, this.flags());
+  
+ 	List<ParameterDeclaration> params = this.getParameterList(); 
+ 	SootMethod method = new SootMethod(this.name(),
+		this.getParameterListSoot(),
+    	this.type().sootType(), this.flags());
    	sClass.addMethod(method);
-   	
    	JimpleBody body = Jimple.v().newBody(method);
     method.setActiveBody(body);
     /*

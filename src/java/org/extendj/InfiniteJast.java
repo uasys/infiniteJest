@@ -74,10 +74,12 @@ public class InfiniteJast extends Frontend {
 		  Options.v().set_output_format(Options.output_format_jimple);
 	  }
 	  
+	  //TODO: Do I still need this? 
+	  /*
 	  PhaseOptions.v().setPhaseOption("jop", "enabled");
 	  PackManager.v().runBodyPacks();
 	  PackManager.v().writeOutput();
-	  
+	  */
 	  return retval;
   }
 
