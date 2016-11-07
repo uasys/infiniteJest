@@ -1,9 +1,153 @@
 import soot.*;
+import java.io.*;
+import soot.options.*;
+import soot.Scene;
+import soot.jimple.*;
+import soot.util.*;
 
 aspect InfiniteJast {
 
-  public void CompilationUnit.process() {
-	System.out.println(pathName() + " contained no errors");
+  public void CompilationUnit.process()  {
+	if (this.fromSource()) {
+		this.jimplify(null);
+	}
   }
+  
+  public void ASTNode.jimplify(SootClass sClass) {
+  	for(int i = 0; i < getNumChild(); i++) {
+  		getChild(i).jimplify(sClass);
+  	}
+  }
+  
+  public void ClassDecl.jimplify(SootClass _sClass) {
+  
+  	SootClass sClass;
+  	//do I need to always load and support java.lang.Object and java.lang.System?
+  	Scene.v().loadClassAndSupport("java.lang.Object");
+    Scene.v().loadClassAndSupport("java.lang.System");
+    //this is not always true... or is it? When are classes private or protected?
+    sClass = new SootClass(jvmName(), soot.Modifier.PUBLIC);
+    //all Java classes by default extend java object
+    sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
+    
+    Scene.v().addClass(sClass);
+    
+    for(int i = 0; i < getNumChild(); i++) {
+    	getChild(i).jimplify(sClass);
+    	try {
+    		String fileName = SourceLocator.v().getFileNameFor(sClass, soot.options.Options.output_format_jimple);
+			OutputStream streamOut = new FileOutputStream(fileName);
+			PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut));
+			Printer.v().printTo(sClass, writerOut);
+			writerOut.flush();
+			streamOut.close();
+		} catch (Exception e) {
+			System.out.println("There was an error writing the jimple file");
+		}
+    }
+  }
+  
+  public void ImportDecl.jimplify(SootClass sClass) {
+  	for(int i = 0; i < getNumChild(); i++) {
+  		getChild(i).jimplify(sClass);
+  	}
+  }
+    
+  public void MethodDecl.jimplify(SootClass sClass) {
+ 	SootMethod method;
+ 	List<ParameterDeclaration> params = this.getParameterList();
+ 	java.util.List<Type> sootParams = new ArrayList<Type>();
+ 	for(ParameterDeclaration param : params) {
+ 		RefType type = RefType.v(param.type().prettyPrint());
+ 		sootParams.add(type);
+ 	}
+ 	RefType retType = RefType.v(this.type().prettyPrint());
+ 	method = new SootMethod(this.name(),
+		sootParams,
+    	retType, this.flags());
+   	sClass.addMethod(method);
+   	
+   	JimpleBody body = Jimple.v().newBody(method);
+    method.setActiveBody(body);
+    /*
+    Chain units = body.getUnits();
+    Local arg, tmpRef;
+    // Add some locals, java.lang.String l0
+    arg = Jimple.v().newLocal("l0", ArrayType.v(RefType.v("java.lang.String"), 1));
+    
+    body.getLocals().add(arg);
+            
+    // Add locals, java.io.printStream tmpRef
+    tmpRef = Jimple.v().newLocal("tmpRef", RefType.v("java.io.PrintStream"));
+    
+    body.getLocals().add(tmpRef);
+                
+    // add "l0 = @parameter0"
+    units.add(Jimple.v().newIdentityStmt(arg, 
+    Jimple.v().newParameterRef(ArrayType.v(RefType.v("java.lang.String"), 1), 0)));
+    
+            
+    // add "tmpRef = java.lang.System.out"
+    units.add(Jimple.v().newAssignStmt(tmpRef, Jimple.v().newStaticFieldRef(
+    Scene.v().getField("<java.lang.System: java.io.PrintStream out>").makeRef())));
+            
+    // insert "tmpRef.println("Hello world!")"
+    SootMethod toCall = Scene.v().getMethod("<java.io.PrintStream: void println(java.lang.String)>");
+    units.add(Jimple.v().newInvokeStmt(Jimple.v().newVirtualInvokeExpr(tmpRef, toCall.makeRef(), StringConstant.v("Hello world!"))));
+                
+    // insert "return"
+    units.add(Jimple.v().newReturnVoidStmt());
+	*/
+  }
+  
+  
+  // it looks to me like these will always be constant... so why even bother defining them?
+ /* public SootMethod TypeDecl.clinit = null;
+  syn lazy SootClass TypeDecl.sootClass() = null;
+  //syn boolean BodyDecl.generate() = true;
+  
+  syn lazy SootClass TypeDecl.getSootClassDecl() {
+  	if ( compilationUnit().fromSource() ) { return sootClass();}
+  	if ( program().options().verbose() ) { System.out.println("Loading .class file " + jvmName()); }
+  	SootClass sc = Scene.v().loadClass(jvmName(), SootClass.SIGNATURES);
+  	sc.setLibraryClass();
+  	return sc;
+  }
+  
+  eq ArrayDecl.getSootClassDecl() = typeObject().getSootClassDecl();
+  
+  public void TypeDecl.jimplify() {
+  	//this fails if we find a static field...
+  	if (needsClinit() && !getSootClassDecl().declaresMethod("<clinit>", new ArrayList())) {
+  	}
+  }
+  
+  syn lazy boolean TypeDecl.needsClinit() {
+  	List<BodyDecl> bodies = getBodyDeclList();
+  	for(BodyDecl b : bodies) {
+  		if (b instanceof FieldDecl) {
+  			FieldDecl f = (FieldDecl)b;
+  			if (f.isStatic() && f.hasInit()) {
+  				return true;
+  			}
+  		}
+  		else if (b instanceof StaticInitializer) {
+  			return true;
+  		}
+  	}
+  	return false;
+  }*/
+  
+  //TODO: Do not jimplify body?
+  /*
+  public void BodyDecl.jimplify() {
+  }
+  
+  public void InterfaceDecl.jimplify() {
+  }
+  */
+  
+
+  
 
 }

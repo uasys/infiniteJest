@@ -63,13 +63,13 @@ public class InfiniteJast extends Frontend {
 		  argList[index++] = s;
 	  }
 	  
-	  soot.options.Options.v().parse(argList);
-	  
-	  int retval = run(args, Program.defaultBytecodeReader(), Program.defaultJavaParser());
+	  soot.options.Options.v().parse(argList);  
 	  
 	  Scene.v().loadBasicClasses();
 	  Scene.v().loadDynamicClasses();
 	  
+	  int retval = run(args, Program.defaultBytecodeReader(), Program.defaultJavaParser());
+	  	  
 	  if (program.options().hasOption("-jimple")) {
 		  Options.v().set_output_format(Options.output_format_jimple);
 	  }

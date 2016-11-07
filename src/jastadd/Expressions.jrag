@@ -1,0 +1,83 @@
+import soot.jimple.IntConstant;
+import soot.jimple.LongConstant;
+
+
+aspect Expressions {
+
+	public soot.Value IntegerLiteral.eval(Body b) {
+		return soot.jimple.IntConstant.v(constant().intValue());
+	}
+	
+	//TODO: Soot doesn't have a CharConstant... maybe add one?
+	public soot.Value CharacterLiteral.eval(Body b) {
+		return soot.jimple.IntConstant.v(constant().intValue());
+	}
+	
+	public soot.Value LongLiteral.eval(Body b) {
+		return soot.jimple.LongConstant.v(constant().longValue());
+	}
+	
+	public soot.Value FloatingPointLiteral.eval(Body b) {
+		return soot.jimple.FloatConstant.v(constant().floatValue());
+	}
+	
+	public soot.Value DoubleLiteral.eval(Body b) {
+		return soot.jimple.DoubleConstant.v(constant().doubleValue());
+	}
+	
+	public soot.Value StringLiteral.eval(Body b) {
+		return soot.jimple.StringConstant.v(getLITERAL());
+	}
+	
+	public soot.Value NullLiteral.eval(Body b) {
+		return soot.jimple.NullConstant.v();
+	}
+	
+	//TODO: Soot doesn't have a BooleanConstant... maybe add one?
+	public soot.Value BooleanLiteral.eval(Body b) {
+		return soot.jimple.IntConstant.v(constant().booleanValue() ? 1 : 0);
+	}
+	
+	public soot.Value ParExpr.eval(Body b) {
+		return getExpr().eval(b);
+	}
+	
+	public soot.Value Expr.eval(Body b) { 
+		throw new Error("Operation eval not supported for " + getClass().getName());
+	}
+	/*
+	public soot.Value AssignSimpleExpr.eval(Body b) {
+		Value lvalue = getDest().eval(b);
+		//I don't really understand this line. I am thinking it has to do with type analysis...
+		Value rvalue = asRValue(b,
+			getSource().type().emitCastTo(b,
+				getSource(),
+				getDest().type()
+			)
+		);
+		return getDest().emitStore(b, lvalue, asImmediate(b, rvalue), this);
+	}*/
+	
+	//compound assign expression
+	/*
+	public soot.Value AssignExpr.eval(Body b) {
+		TypeDecl dest = getDest().type();
+		TypeDecl source = getSource().type();
+		boolean needsNumericPromotion = dest.isNumericType() && source.isNumericType();
+		TypeDecl type = needsNumericPromotion ? dest.binaryNumericPromotion(source) : dest;
+		// are you evaluating an identifier?
+		Value lvalue = getDest().eval(b);
+		// if you are local I can modify you easily, if not that means you are a global and cloning is better?
+		Value v = lvalue instanceof Local ? lvalue : (Value)lvalue.clone();
+		Value value = b.newTemp(dest.emitCastTo(b, v, type, this));
+		Value rvalue = source.emitCastTo(b, getSource(), type);
+		Value result = asImmediate(b, type.emitCastTo(b,
+			createAssignOp(b, value, rvalue),
+			dest,
+			getDest()
+		));
+		getDest().emitStore(b, lvalue, result, this);
+		return result;
+	}*/
+	
+}
