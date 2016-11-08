@@ -4,6 +4,11 @@ import soot.jimple.LongConstant;
 
 aspect Expressions {
 
+	// abstract general case
+	public soot.Value Expr.eval(Body b) { 
+		throw new Error("Operation eval not supported for " + getClass().getName());
+	}
+
 	public soot.Value IntegerLiteral.eval(Body b) {
 		return soot.jimple.IntConstant.v(constant().intValue());
 	}
@@ -42,9 +47,7 @@ aspect Expressions {
 		return getExpr().eval(b);
 	}
 	
-	public soot.Value Expr.eval(Body b) { 
-		throw new Error("Operation eval not supported for " + getClass().getName());
-	}
+
 	/*
 	public soot.Value AssignSimpleExpr.eval(Body b) {
 		Value lvalue = getDest().eval(b);
