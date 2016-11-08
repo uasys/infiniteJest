@@ -1,0 +1,43 @@
+aspect _SootTypes {
+  syn soot.Type ArrayDecl.sootType() {
+  	//TODO: not actually true for Reference types... right?
+  	//I will probably need to find the element type and then write a string myself...
+  	return RefType.v(this.typeName());
+  }
+
+  syn soot.Type TypeDecl.sootType() {
+  	return this.isReferenceType() ? RefType.v(this.jvmName()) : RefType.v(this.typeName());
+  }
+  
+  syn soot.Type VoidType.sootType() {
+  	return soot.VoidType.v();
+  }
+  
+  syn soot.Type IntType.sootType() {
+  	return soot.IntType.v();
+  }
+  
+  syn soot.Type CharType.sootType() {
+  	return soot.CharType.v();
+  }
+  
+  syn soot.Type BooleanType.sootType() {
+  	return soot.BooleanType.v();
+  }
+  
+  syn soot.Type DoubleType.sootType() {
+  	return soot.DoubleType.v();
+  }
+  
+  syn soot.Type FloatType.sootType() {
+  	return soot.FloatType.v();
+  }
+  
+  syn soot.Type LongType.sootType() {
+  	return soot.LongType.v();
+  }
+  
+  syn soot.Type ShortType.sootType() {
+  	return soot.ShortType.v();
+  }
+}

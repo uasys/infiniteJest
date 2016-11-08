@@ -51,58 +51,55 @@ aspect InfiniteJast {
     }
   }
   
-  syn soot.Type ArrayDecl.sootType() {
-  	//TODO: not actually true for Reference types... right?
-  	return RefType.v(this.typeName());
-  }
 
-  syn soot.Type TypeDecl.sootType() {
-  	return this.isReferenceType() ? RefType.v(this.jvmName()) : RefType.v(this.typeName());
-  }
-  
-  syn java.util.List<Type> MethodDecl.getParameterListSoot() {
-  	List<ParameterDeclaration> params = this.getParameterList();
-  	java.util.List<Type> sootParams = new ArrayList<Type>();
-  	for (ParameterDeclaration param : params) {
-  		sootParams.add(param.type().sootType());
-  	}
-  	return sootParams;
-  }
-  
   public <T> void MethodDecl.jimplify(T _sClass) {
   	if (!(_sClass instanceof SootClass)) {
   		for(int i = 0; i < getNumChild(); i++) {
   			getChild(i).jimplify(_sClass);
   		}
+  		return;
   	}
   	
   	SootClass sClass = (SootClass)_sClass;
- 	List<ParameterDeclaration> params = this.getParameterList(); 
  	//TODO: Exceptions....
- 	SootMethod method = new SootMethod(this.name(),
-		this.getParameterListSoot(),
-    	this.type().sootType(), this.flags());
+ 	java.util.LinkedHashMap<Local, Type> params = this.getParametersSoot();
+ 	java.util.List<Type> types = new ArrayList<Type>(params.values());
+ 	SootMethod method = new SootMethod(this.name(), types, this.type().sootType(), this.flags());
    	sClass.addMethod(method);
    	JimpleBody body = Jimple.v().newBody(method);
     method.setActiveBody(body);
+    this.addParamsToBody(body, params);
 	for(int i = 0; i < getNumChild(); i++) {
   		getChild(i).jimplify(body);
   	}
   }
-
-  public <T> void Block.jimplify(T _body) {
-    if (!(_body instanceof JimpleBody)) {
-  		for(int i = 0; i < getNumChild(); i++) {
+  
+  public <T> void VariableDeclarator.jimplify(T _body) {
+  	if (!(_body instanceof JimpleBody)) {
+  		for (int i = 0; i < getNumChild(); i++) {
   			getChild(i).jimplify(_body);
   		}
+  		return;
   	}
   	JimpleBody body = (JimpleBody)_body;
-  	Chain units = body.getUnits();
-	for(int i = 0; i < getNumChild(); i++) {
-  		getChild(i).jimplify(units);
-  	}
+  	Local newLocal = Jimple.v().newLocal(this.name(), this.type().sootType());
+  	body.getLocals().add(newLocal);
   }
   
+  public <T> void ReturnStmt.jimplify(T _units) {
+  	if (!(_units instanceof Chain)) {
+  		for (int i = 0; i < getNumChild(); i++) {
+  			getChild(i).jimplify(_units);
+  		}
+  		return;
+  	}
+  	Chain units = (Chain)_units;
+  	units.add(Jimple.v().newReturnVoidStmt());
+	for(int i = 0; i < getNumChild(); i++) {
+		getChild(i).jimplify(units);
+	}
+  }
+  /*
   public <T> void Stmt.jimplify(T _units) {
   	if (!(_units instanceof Chain)) {
   		for(int i = 0; i < getNumChild(); i++) {
@@ -111,5 +108,5 @@ aspect InfiniteJast {
   	}
   	Chain units = (Chain)_units;
   }
-
+*/
 }
