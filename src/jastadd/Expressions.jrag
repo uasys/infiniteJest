@@ -70,30 +70,72 @@ aspect Expressions {
 		throw new Error("emitOperation not implemented in " + getClass().getName());
 	}
 	
-	//TODO: What about strings?
-	public soot.Value AddExpr.emit(Body b) {
+	public Local Binary.getLeftOperandLocal(Body b) {
 		soot.Value lhs = this.getLeftOperand().emit(b);
-		soot.Value rhs = this.getRightOperand().emit(b);
 		Local lhsLocal = this.getTempLocal(b);
-		Local rhsLocal = this.getTempLocal(b);
 		Chain units = b.getUnits();
 		units.add(Jimple.v().newAssignStmt(lhsLocal, lhs));
+		return lhsLocal;
+	}
+	
+	public Local Binary.getRightOperandLocal(Body b) {
+		soot.Value rhs = this.getRightOperand().emit(b);
+		Local rhsLocal = this.getTempLocal(b);
+		Chain units = b.getUnits();
 		units.add(Jimple.v().newAssignStmt(rhsLocal, rhs));
-		soot.jimple.AddExpr retval = Jimple.v().newAddExpr(lhsLocal, rhsLocal);
+		return rhsLocal;
+	}
+
+	public soot.Value AddExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.AddExpr retval = Jimple.v().newAddExpr(lhs, rhs);
 		return retval;
 	}
 	
 	public soot.Value SubExpr.emit(Body b) {
-		soot.Value lhs = this.getLeftOperand().emit(b);
-		soot.Value rhs = this.getRightOperand().emit(b);
-		Local lhsLocal = this.getTempLocal(b);
-		Local rhsLocal = this.getTempLocal(b);
-		Chain units = b.getUnits();
-		units.add(Jimple.v().newAssignStmt(lhsLocal, lhs));
-		units.add(Jimple.v().newAssignStmt(rhsLocal, rhs));
-		soot.jimple.SubExpr retval = Jimple.v().newSubExpr(lhsLocal, rhsLocal);
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.SubExpr retval = Jimple.v().newSubExpr(lhs, rhs);
 		return retval;
 	}
+	
+	public soot.Value MulExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.MulExpr retval = Jimple.v().newMulExpr(lhs, rhs);
+		return retval;
+	}
+	
+	public soot.Value DivExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.DivExpr retval = Jimple.v().newDivExpr(lhs, rhs);
+		return retval;
+	}
+	
+	public soot.Value ModExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.RemExpr retval = Jimple.v().newRemExpr(lhs, rhs);
+		return retval;
+	}
+	
+	public soot.Value LShiftExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.ShlExpr retval = Jimple.v().newShlExpr(lhs, rhs);
+		return retval;
+	}
+	
+	public soot.Value RShiftExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.ShrExpr retval = Jimple.v().newShrExpr(lhs, rhs);
+		return retval;
+	}
+	
+
 	
 	
 
