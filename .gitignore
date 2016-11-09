@@ -3,7 +3,7 @@ src/gen/
 src/gen-res/
 testfiles/
 *.jar
-.gradle
+.gradle/*
 sootOutput/
 *.jimple
 
