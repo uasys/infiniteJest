@@ -135,6 +135,36 @@ aspect Expressions {
 		return retval;
 	}
 	
+	//NOTE: No Unsigned Shift Left definition in Java.
+	
+	public soot.Value URShiftExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.UshrExpr retval = Jimple.v().newUshrExpr(lhs, rhs);
+		return retval;
+	}
+	
+	public soot.Value OrBitwiseExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.OrExpr retval = Jimple.v().newOrExpr(lhs, rhs);
+		return retval;
+	}
+	
+	public soot.Value AndBitwiseExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.AndExpr retval = Jimple.v().newAndExpr(lhs, rhs);
+		return retval;
+	}
+	
+	public soot.Value XorBitwiseExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.XorExpr retval = Jimple.v().newXorExpr(lhs, rhs);
+		return retval;
+	}
+	
 
 	
 	
