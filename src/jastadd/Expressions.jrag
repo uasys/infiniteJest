@@ -83,6 +83,18 @@ aspect Expressions {
 		return retval;
 	}
 	
+	public soot.Value SubExpr.emit(Body b) {
+		soot.Value lhs = this.getLeftOperand().emit(b);
+		soot.Value rhs = this.getRightOperand().emit(b);
+		Local lhsLocal = this.getTempLocal(b);
+		Local rhsLocal = this.getTempLocal(b);
+		Chain units = b.getUnits();
+		units.add(Jimple.v().newAssignStmt(lhsLocal, lhs));
+		units.add(Jimple.v().newAssignStmt(rhsLocal, rhs));
+		soot.jimple.SubExpr retval = Jimple.v().newSubExpr(lhsLocal, rhsLocal);
+		return retval;
+	}
+	
 	
 
 	/*
