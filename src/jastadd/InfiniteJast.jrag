@@ -87,7 +87,7 @@ aspect InfiniteJast {
   	Local newLocal = Jimple.v().newLocal(this.name(), this.type().sootType());
   	body.getLocals().add(newLocal);
   	if (null != init) {
-  		soot.Value rval = init.eval(body);
+  		soot.Value rval = init.emit(body);
   		Chain units = body.getUnits();
   		units.add(Jimple.v().newAssignStmt(newLocal, rval));
   	}
