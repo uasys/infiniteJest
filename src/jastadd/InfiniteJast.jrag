@@ -75,7 +75,7 @@ aspect InfiniteJast {
   }
   
   //TODO: add dimensions...
-  public <T> void Declarator.jimplify(T _body) {
+  public <T> void VariableDeclarator.jimplify(T _body) {
   	if (!(_body instanceof JimpleBody)) {
   		for (int i = 0; i < getNumChild(); i++) {
   			getChild(i).jimplify(_body);
@@ -86,11 +86,12 @@ aspect InfiniteJast {
   	JimpleBody body = (JimpleBody)_body;
   	Local newLocal = Jimple.v().newLocal(this.name(), this.type().sootType());
   	body.getLocals().add(newLocal);
-  	if (null != init) {
+  	if (this.hasInit()) {
   		soot.Value rval = init.emit(body);
   		Chain units = body.getUnits();
   		units.add(Jimple.v().newAssignStmt(newLocal, rval));
   	}
+  	this.local = newLocal;
   }
   
   public <T> void ReturnStmt.jimplify(T _units) {
@@ -106,6 +107,9 @@ aspect InfiniteJast {
 		getChild(i).jimplify(units);
 	}
   }
+  
+  public Local VariableDeclarator.local = null;
+  public Local ParameterDeclaration.local = null;
   /*
   public <T> void Stmt.jimplify(T _units) {
   	if (!(_units instanceof Chain)) {

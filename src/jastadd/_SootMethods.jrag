@@ -5,6 +5,7 @@
   	for (ParameterDeclaration param : params) {
   		Local newLocal = Jimple.v().newLocal(param.name(), param.type().sootType());
   		sootParams.put(newLocal, param.type().sootType());
+  		param.local = newLocal;
   	}
   	return sootParams;
   }

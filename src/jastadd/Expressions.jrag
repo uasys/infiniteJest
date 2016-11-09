@@ -15,18 +15,17 @@ aspect Expressions {
 		return Expr.temp++;
 	}
 	
-	// abstract general case
-	public soot.Value Expr.emit(Body b) { 
-		throw new Error("Operation emit not supported for " + getClass().getName());
-	}
-	
-	
 	public Local Expr.getTempLocal(Body b) {
 		Local local = Jimple.v().newLocal("temp$" + this.getTempIdx(), this.type().sootType());
 		b.getLocals().add(local);
 		return local;
 	}
-
+	
+	// abstract general case
+	public soot.Value Expr.emit(Body b) { 
+		throw new Error("Operation emit not supported for " + getClass().getName());
+	}
+	
 	public soot.Value IntegerLiteral.emit(Body b) {
 		return soot.jimple.IntConstant.v(constant().intValue());
 	}
@@ -65,7 +64,7 @@ aspect Expressions {
 		return getExpr().emit(b);
 	}
 	
-	//General case...
+	//General case... for binary operations
 	public soot.Value Binary.emit(Body b) {
 		throw new Error("emitOperation not implemented in " + getClass().getName());
 	}
@@ -84,6 +83,13 @@ aspect Expressions {
 		Chain units = b.getUnits();
 		units.add(Jimple.v().newAssignStmt(rhsLocal, rhs));
 		return rhsLocal;
+	}
+	
+	//TODO:
+	public void AssignExpr.getDestLocal(Body b) {
+		//interesting because destination is an address...
+		//soot.Value dest = this.getDest().
+		return;
 	}
 
 	public soot.Value AddExpr.emit(Body b) {
@@ -165,7 +171,44 @@ aspect Expressions {
 		return retval;
 	}
 	
+	/*
+	public soot.Value AssingPlusExpr.emit(Body b) {
+		Local dest = this.getDst();
+	}
+	*/
 
+	//general case for accesses...
+	public soot.Value AbstractDot.emit(Body b) {
+		return lastAccess().emit(b);
+	}
+	
+	// you just encounter a variable...
+	public soot.Value VarAccess.emit(Body b) {
+		Variable var = this.decl();
+		//I can't believe this distinction is made...
+		if (var instanceof VariableDeclarator) {
+			System.out.println("variable");
+			VariableDeclarator decl = (VariableDeclarator)var;
+			//TODO: host thing...
+			return decl.local;
+		}
+		else if (var instanceof ParameterDeclaration) {
+			ParameterDeclaration decl = (ParameterDeclaration)var;
+			//TODO: host thing...
+			System.out.println("param");
+			return decl.local;
+		}
+		else if (var instanceof FieldDeclarator) {
+			//TODO: 
+		}
+		else {
+		//TODO:
+		}
+		
+		//Just for now...
+		return null;
+	}
+	
 	
 	
 
