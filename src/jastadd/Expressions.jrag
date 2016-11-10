@@ -16,9 +16,20 @@ aspect Expressions {
 	}
 	
 	public Local Expr.getTempLocal(Body b) {
-		Local local = Jimple.v().newLocal("temp$" + this.getTempIdx(), this.type().sootType());
+		Local local = Jimple.v().newLocal("temp$" + Expr.getTempIdx(), this.type().sootType());
 		b.getLocals().add(local);
 		return local;
+	}
+	
+	public void Expr.saveLocalValue(Body b, Local l, soot.Value val) {
+		Chain units = b.getUnits();
+		units.add(Jimple.v().newAssignStmt(l, val));
+	}
+	
+	public Local Expr.saveInTempLocal(Body b, soot.Value val) {
+		Local newLocal = this.getTempLocal(b);
+		this.saveLocalValue(b, newLocal, val);
+		return newLocal;
 	}
 	
 	// abstract general case
@@ -64,6 +75,108 @@ aspect Expressions {
 		return getExpr().emit(b);
 	}
 	
+	//general case...
+	public soot.Value Unary.emit(Body b) {
+		return super.emit(b);
+	}
+	
+	public Local Unary.getOperandLocal(Body b) {
+		soot.Value operand = this.getOperand().emit(b);
+		if (operand instanceof Local) return (Local) operand;
+		Local newLocal = this.getTempLocal(b);
+		Chain units = b.getUnits();
+		units.add(Jimple.v().newAssignStmt(newLocal, operand));
+		return newLocal;
+	}
+	
+	// x = -y;
+	public soot.Value MinusExpr.emit(Body b) {
+		Local operand = this.getOperandLocal(b);
+		soot.jimple.NegExpr retval = Jimple.v().newNegExpr(operand);
+		return retval;
+	}
+	
+	// x = +y
+	public soot.Value PlusExpr.emit(Body b) {
+		return this.getOperand().emit(b);
+	}
+	
+	//x = ~y
+	public soot.Value BitNotExpr.emit(Body b) {
+		soot.Value v = this.emitConstant(new Constant.ConstantInt(-1));
+		Local operand = this.getOperandLocal(b);
+		soot.jimple.XorExpr retval = Jimple.v().newXorExpr(operand, v);
+		return retval;
+	}
+	
+	// for logic negation see BooleanExpressions.jrag
+	
+	public soot.Value CastExpr.emit(Body b) {
+		//TODO: previous code had a lot of stuff in it... Was it just for eval to work?
+		if (this.isConstant()) return this.emitConstant(this.constant());
+		soot.Value operand = this.getExpr().emit(b);
+		Local local = this.saveInTempLocal(b, operand);
+		soot.jimple.CastExpr retval = Jimple.v().newCastExpr(local, this.type().sootType());
+		return retval;
+	}
+	
+	public soot.Value ASTNode.emitConstant(Constant constant) {
+		if (constant instanceof Constant.ConstantInt) {
+			return soot.jimple.IntConstant.v(constant.intValue());
+		} else if (constant instanceof Constant.ConstantLong) {
+			return soot.jimple.LongConstant.v(constant.longValue());
+		} else if (constant instanceof Constant.ConstantFloat) {
+			return soot.jimple.FloatConstant.v(constant.floatValue());
+		} else if (constant instanceof Constant.ConstantDouble) {
+			return soot.jimple.DoubleConstant.v(constant.doubleValue());
+		} else if (constant instanceof Constant.ConstantChar) {
+			return soot.jimple.IntConstant.v(constant.intValue());
+		} else if (constant instanceof Constant.ConstantBoolean) {
+			return soot.jimple.IntConstant.v(constant.booleanValue() ? 1 : 0);
+		} else if (constant instanceof Constant.ConstantString) {
+			return soot.jimple.StringConstant.v(constant.stringValue());
+		} else {
+			throw new Error("Unexpected constant");
+		}
+	}
+	
+	//General case... for postfixes
+	public soot.Value Unary.emitPostfix(Body b, int constant) {
+		Local operand = this.getOperandLocal(b);
+		Local copy = this.saveInTempLocal(b, operand);
+		soot.Value postfix = this.emitConstant(new Constant.ConstantInt(constant));
+		soot.jimple.AddExpr retval = Jimple.v().newAddExpr(operand, postfix);
+		Chain units = b.getUnits();
+		units.add(Jimple.v().newAssignStmt(operand, retval));
+		return copy;
+	}
+	
+	public soot.Value PostIncExpr.emit(Body b) {
+		return this.emitPostfix(b, 1);
+	}
+	
+	public soot.Value PostDecExpr.emit(Body b) {
+		return this.emitPostfix(b, -1);
+	}
+	
+	//General case for prefixes
+	public soot.Value Unary.emitPrefix(Body b, int constant) {
+		Local operand = this.getOperandLocal(b);
+		soot.Value prefix = this.emitConstant(new Constant.ConstantInt(constant));
+		soot.jimple.AddExpr temp = Jimple.v().newAddExpr(operand, prefix);
+		Chain units = b.getUnits();
+		units.add(Jimple.v().newAssignStmt(operand, temp));
+		return operand;
+	}
+	
+	public soot.Value PreIncExpr.emit(Body b) {
+		return this.emitPrefix(b, 1);
+	}
+	
+	public soot.Value PreDecExpr.emit(Body b) {
+		return this.emitPrefix(b, -1);
+	}
+	
 	//General case... for binary operations
 	public soot.Value Binary.emit(Body b) {
 		throw new Error("emitOperation not implemented in " + getClass().getName());
@@ -71,6 +184,7 @@ aspect Expressions {
 	
 	public Local Binary.getLeftOperandLocal(Body b) {
 		soot.Value lhs = this.getLeftOperand().emit(b);
+		if (lhs instanceof Local) return (Local) lhs;
 		Local lhsLocal = this.getTempLocal(b);
 		Chain units = b.getUnits();
 		units.add(Jimple.v().newAssignStmt(lhsLocal, lhs));
@@ -79,6 +193,7 @@ aspect Expressions {
 	
 	public Local Binary.getRightOperandLocal(Body b) {
 		soot.Value rhs = this.getRightOperand().emit(b);
+		if (rhs instanceof Local) return (Local) rhs;
 		Local rhsLocal = this.getTempLocal(b);
 		Chain units = b.getUnits();
 		units.add(Jimple.v().newAssignStmt(rhsLocal, rhs));
@@ -187,8 +302,7 @@ aspect Expressions {
 		Variable var = this.decl();
 		//I can't believe this distinction is made...
 		if (var instanceof VariableDeclarator) {
-			System.out.println("variable");
-			VariableDeclarator decl = (VariableDeclarator)var;
+			VariableDeclarator decl = (VariableDeclarator)var;			
 			//TODO: host thing...
 			return decl.local;
 		}
@@ -209,9 +323,42 @@ aspect Expressions {
 		return null;
 	}
 	
+	/*
+	public soot.Value CastExpr.emit(Body b) {
+		
+	}*/
 	
+	/*
+	// now we encounter a method...
+	public soot.Value MethodAccess.emit(Body b) {
+		MethodDecl method = this.decl(); // which method are you accessing?
+		boolean isQualifiedAndAccessible = isQualified() && prevExpr().isSuperAccess();
+		// qualified = does it have a "package.class." before the "method()"?
+		if (!method.isStatic() && isQualifiedAndAccessible) {
+			Soot.value left = this.qualifier().emit();
+			Local newLocal = this.saveInTempLocal(b, left);
+		}
+	}
 	
-
+	public soot.Local VarAccess.createLoadQualifier(Body b) {
+    Variable v = decl();
+    if(v instanceof FieldDeclaration) {
+      FieldDeclaration f = (FieldDeclaration)v;
+      if(hasPrevExpr()) {
+        // load explicit qualifier
+        Local qualifier = asLocal(b, prevExpr().eval(b));
+        // pop qualifier stack element for class variables
+        // this qualifier must be computed to ensure side effects
+        return qualifier;
+      }
+      else if(f.isInstanceVariable()) {
+        return emitThis(b, fieldQualifierType());
+      }
+    }
+    throw new Error("createLoadQualifier not supported for " + v.getClass().getName());
+  }
+	
+*/
 	/*
 	public soot.Value AssignSimpleExpr.emit(Body b) {
 		Value lvalue = getDest().emit(b);
