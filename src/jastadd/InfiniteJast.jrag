@@ -19,6 +19,25 @@ aspect InfiniteJast {
   	}
   }
   
+  syn lazy SootClass TypeDecl.getSootClassDecl() {
+  	if (compilationUnit().fromSource()) { return this.sootClass(); }
+  	
+  	//if (this.options().verbose()) { System.out.println("Loading .class file " + this.jvmName()); }
+  	
+  	SootClass sc = Scene.v().loadClass(this.jvmName(), SootClass.SIGNATURES);
+  	sc.setLibraryClass();
+  	return sc;
+  }
+  
+  syn lazy SootClass TypeDecl.sootClass() = null;
+  eq ClassDecl.sootClass() {
+  	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
+  	
+  	SootClass sc = new SootClass(this.jvmName()
+  }
+  
+  eq ArrayDecl.getSootClassDecl() = typeObject().getSootClassDecl();
+  
   public <T> void ClassDecl.jimplify(T _sClass) {
   	SootClass incoming = null;
 
@@ -49,6 +68,88 @@ aspect InfiniteJast {
 			System.out.println("There was an error writing the jimple file");
 		}
     }
+  }
+  
+  syn int MethodDecl.sootTypeModifiers() {
+  	int result = 0;
+  	if (this.isPublic())		result |= soot.Modifier.PUBLIC;
+  	if (this.isProtected())		result |= soot.Modifier.PROTECTED;
+  	if (this.isPrivate())		result |= soot.Modifier.PRIVATE;
+  	if (this.isFinal())			result |= soot.Modifier.FINAL;
+  	if (this.isStatic())		result |= soot.Modifier.STATIC;
+  	if (this.isAbstract())		result |= soot.Modifier.ABSTRACT;
+  	if (this.isSynchronized())	result |= soot.Modifier.SYNCHRONIZED;
+  	if (this.isStrictfp())		result |= soot.Modifier.STRICTFP;
+  	if (this.isNative())		result |= soot.Modifier.NATIVE;
+  	return result;
+  }
+  
+  syn int ConstructorDecl.sootTypeModifiers() {
+  	int result = 0;
+  	if (this.isPublic())	result |= soot.Modifier.PUBLIC;
+  	if (this.isProtected())	result |= soot.Modifier.PROTECTED;
+  	if (this.isPrivate())	result |= soot.Modifier.PRIVATE;
+  	return result;
+  }
+  
+  syn int FieldDeclarator.sootTypeModifiers() {
+  	int result = 0;
+  	if (this.isPublic()) 	result |= soot.Modifier.PUBLIC;
+  	if (this.isProtected()) result |= soot.Modifier.PROTECTED;
+  	if (this.isPrivate())	result |= soot.Modifier.PRIVATE;
+  	if (this.isFinal())		result |= soot.Modifier.FINAL;
+  	if (this.isStatic())	result |= soot.Modifier.STATIC;
+  	return result;
+  }
+  
+  public SootField FieldDeclarator.sootField = null;
+  
+  public <T> void FieldDeclarator.jimplify(T _sClass) {
+  	if (!(_sClass instanceof SootClass)) {
+  		for(int i = 0; i < getNumChild(); i++) {
+  			getChild(i).jimplify(_sClass);
+  		}
+  		return;
+  	}
+  	
+  	SootClass sClass = (SootClass)_sClass;
+  	String name = this.name();
+  	soot.Type type = this.type().sootType();
+  	int modifiers = this.sootTypeModifiers();
+  	boolean thisClassDeclaresThisField = !this.hostType().getSootClassDecl().declaresFieldByName(name);
+  	
+	if (!thisClassDeclaresThisField) {
+		this.sootField = hostType().getSootClassDecl().getFieldByName(name);
+		//addAttributes()
+		return;
+	}
+	
+  	SootField f = new SootField(name, type, modifiers);
+  	boolean fieldIsStaticFinalConstantBuiltinType = this.isStatic() &&
+  													this.isFinal() &&
+  													this.isConstant() &&
+  													(this.type().isPrimitive() || this.type().isString());
+  	if (!fieldIsStaticFinalConstantBuiltinType) {
+  		this.sootField = f;
+  		//addAttributes();
+  		return;
+  	}
+  	
+  	if (this.type().isString()) {
+  		f.addTag(new soot.tagkit.StringConstantValueTag(constant().stringValue()));
+  	} else if (this.type().isLong()) {
+  		f.addTag(new soot.tagkit.LongConstantValueTag(constant().longValue()));
+  	} else if (this.type().isDouble()) {
+  		f.addTag(new soot.tagkit.DoubleConstantValueTag(constant().doubleValue()));
+  	} else if (this.type().isFloat()) {
+  		f.addTag(new soot.tagkit.FloatConstantValueTag(constant().floatValue()));
+  	} else if (this.type().isIntegralType()) {
+  		f.addTag(new soot.tagkit.IntegerConstantValueTag(constant().intValue()));
+  	}
+  	
+  	this.sootField = f;
+  	//addAttributes();
+  	return;
   }
   
 
