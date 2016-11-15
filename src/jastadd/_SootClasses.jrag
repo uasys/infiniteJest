@@ -1,0 +1,40 @@
+aspect _SootClasses {
+
+  public SootClass TypeDecl.sootClass;
+  syn lazy SootClass TypeDecl.getSootClassDecl() {
+  	if (compilationUnit().fromSource()) { return this.sootClass == null ? this.sootClass() : this.sootClass; }
+  	
+  	//if (this.options().verbose()) { System.out.println("Loading .class file " + this.jvmName()); }
+  	
+  	SootClass sc = Scene.v().loadClass(this.jvmName(), SootClass.SIGNATURES);
+  	sc.setLibraryClass();
+  	return sc;
+  }
+  
+  eq ArrayDecl.getSootClassDecl() = typeObject().getSootClassDecl();
+  
+  
+  syn lazy SootClass TypeDecl.sootClass() = null;
+  public SootClass ClassDecl.sootClass;
+  public SootClass InterfaceDecl.sootClass;
+  eq ClassDecl.sootClass() {
+  	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
+  	
+  	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
+  	Scene.v().addClass(sc);
+  	sc.setApplicationClass();
+  	if (!this.isObject()) { sc.setSuperclass(typeObject().getSootClassDecl()); }
+  	return sc;
+  }
+  
+  eq InterfaceDecl.sootClass() {
+  	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
+  	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
+  	Scene.v().addClass(sc);
+  	sc.setApplicationClass();
+  	return sc;
+  }
+  
+ 
+ 
+}

@@ -1,0 +1,6 @@
+aspect _InfiniteJastUtils {
+	syn String TypeDecl.sourceNameWithoutPath() {
+		String s = sourceFile();
+		return s != null ? s.substring(s.lastIndexOf(java.io.File.separatorChar) + 1) : "Unknown";
+	}
+}

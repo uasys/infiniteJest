@@ -1,0 +1,35 @@
+aspect _SootClinit {
+
+  public SootMethod TypeDecl.clinit = null;
+
+  syn lazy boolean TypeDecl.needsClinit() {
+  	for (int i = 0; i < this.getNumBodyDecl(); i++) {
+  		BodyDecl b = this.getBodyDecl(i);
+  		if (b instanceof FieldDecl) {
+  			FieldDecl f = (FieldDecl) b;
+  			if (f.isStatic() && f.hasInit()) { return true; }
+  		} else if (b instanceof StaticInitializer) {
+  			return true;
+  		}
+  	}
+  	return false;
+  }
+  
+  public <T> void TypeDecl.jimplify(T _sClass) {
+  	boolean needsAndDoesntHaveClinit = this.needsClinit() && !this.getSootClassDecl().declaresMethod("<clinit>", new ArrayList());
+  	if (needsAndDoesntHaveClinit) {
+  		this.clinit = new SootMethod("<clinit>", new ArrayList(), soot.VoidType.v(), soot.Modifier.STATIC, new ArrayList());
+  		this.getSootClassDecl().addMethod(clinit);
+  	}
+  	
+  	for (Iterator iter = this.nestedTypes().iterator(); iter.hasNext(); ) {
+  		TypeDecl typeDecl = (TypeDecl)iter.next();
+  		typeDecl.jimplify(_sClass);
+  	}
+  	for (int i = 0; i < this.getNumBodyDecl(); i++) {
+  		this.getBodyDecl(i).jimplify();
+  	}
+  }
+  
+  
+}
