@@ -4,75 +4,38 @@ import soot.options.*;
 import soot.Scene;
 import soot.jimple.*;
 import soot.util.*;
+import soot.tagkit.SourceFileTag;
 
 aspect InfiniteJast {
 
   public void CompilationUnit.process()  {
 	if (this.fromSource()) {
-		this.jimplify(null);
+		this.jimplify();
 	}
   }
   
-  public <T> void ASTNode.jimplify(T c) {
+  public void ASTNode.jimplify() {
   	for(int i = 0; i < getNumChild(); i++) {
-  		getChild(i).jimplify(c);
+  		getChild(i).jimplify();
   	}
   }
   
-  syn lazy SootClass TypeDecl.getSootClassDecl() {
-  	if (compilationUnit().fromSource()) { return this.sootClass(); }
-  	
-  	//if (this.options().verbose()) { System.out.println("Loading .class file " + this.jvmName()); }
-  	
-  	SootClass sc = Scene.v().loadClass(this.jvmName(), SootClass.SIGNATURES);
-  	sc.setLibraryClass();
-  	return sc;
-  }
-  
-  syn lazy SootClass TypeDecl.sootClass() = null;
-  eq ClassDecl.sootClass() {
-  	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
-  	
-  	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
-  	Scene.v().addClass(sc);
-  	sc.setApplicationClass();
-  	if (!this.isObject()) { sc.setSuperclass(typeObject().getSootClassDecl()); }
-  	return sc;
-  }
-  
-  eq InterfaceDecl.sootClass() {
-  	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
-  	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
-  	Scene.v().addClass(sc);
-  	sc.setApplicationClass();
-  	return sc;
-  }
-  
-  eq ArrayDecl.getSootClassDecl() = typeObject().getSootClassDecl();
- 
-  
-  public <T> void ClassDecl.jimplify(T _sClass) {
-  	SootClass incoming = null;
+  public void ClassDecl.jimplify() {
 
-    SootClass sClass = new SootClass(this.jvmName(), this.flags());
-    sClass.setSuperclass(Scene.v().getSootClass(this.superclass().fullName()));
+    SootClass sClass = new SootClass(this.jvmName(), this.sootTypeModifiers());
+    sClass.setSuperclass(Scene.v().getSootClass(this.superclass().jvmName()));
     Collection<TypeDecl> interfaces = this.superInterfaces();
    	for (TypeDecl _interface : interfaces) {
    		if (!sClass.implementsInterface(_interface.getSootClassDecl().getName())) {
     		sClass.addInterface(_interface.getSootClassDecl());
     	}
     }
-    if (_sClass instanceof SootClass) {
-  		incoming = (SootClass)_sClass;
-  		sClass.setOuterClass(incoming);
-  	}
-    
-
-
-    
+	if (this.isNestedType())
+		sClass.setOuterClass(this.enclosingType().getSootClassDecl());
     Scene.v().addClass(sClass);
-    for(int i = 0; i < getNumChild(); i++) {
-    	getChild(i).jimplify(sClass);
+    sClass.setResolvingLevel(SootClass.HIERARCHY);
+    super.jimplify();
+    sClass.setResolvingLevel(SootClass.SIGNATURES);
     	try {
     		String fileName = SourceLocator.v().getFileNameFor(sClass, soot.options.Options.output_format_jimple);
 			OutputStream streamOut = new FileOutputStream(fileName);
@@ -90,21 +53,32 @@ aspect InfiniteJast {
 			System.out.println(e.getMessage());
 			System.out.println("There was an error writing the jimple file");
 		}
-    }
+  }
+  
+  public void InterfaceDecl.jimplify() {
+  	SootClass sc = this.getSootClassDecl();
+  	sc.setResolvingLevel(SootClass.DANGLING);
+  	SourceFileTag st = new soot.tagkit.SourceFileTag(this.sourceNameWithoutPath());
+  	sc.addTag(st);
+  	sc.setSuperclass(this.typeObject().getSootClassDecl());
+  	for (Iterator iter = this.interfacesIterator(); iter.hasNext(); ) {
+  		TypeDecl typeDecl = (TypeDecl)iter.next();
+  		if (typeDecl != this.typeObject() && !sc.implementsInterface(typeDecl.getSootClassDecl().getName()))
+  			sc.addInterface(typeDecl.getSootClassDecl());
+  	}
+  	if (this.isNestedType()) {
+  		sc.setOuterClass(this.enclosingType().getSootClassDecl());
+  	}
+  	sc.setResolvingLevel(SootClass.HIERARCHY);
+  	super.jimplify();
+  	sc.setResolvingLevel(SootClass.SIGNATURES);
   }
   
 
   public SootField FieldDeclarator.sootField = null;
   
-  public <T> void FieldDeclarator.jimplify(T _sClass) {
-  	if (!(_sClass instanceof SootClass)) {
-  		for(int i = 0; i < getNumChild(); i++) {
-  			getChild(i).jimplify(_sClass);
-  		}
-  		return;
-  	}
+  public void FieldDeclarator.jimplify(SootClass sClass) {
   	
-  	SootClass sClass = (SootClass)_sClass;
   	String name = this.name();
   	soot.Type type = this.type().sootType();
   	int modifiers = this.sootTypeModifiers();
@@ -144,39 +118,31 @@ aspect InfiniteJast {
   	return;
   }
   
+  public void BodyDecl.jimplify() {
+  }
 
-  public <T> void MethodDecl.jimplify(T _sClass) {
-  	if (!(_sClass instanceof SootClass)) {
-  		for(int i = 0; i < getNumChild(); i++) {
-  			getChild(i).jimplify(_sClass);
-  		}
-  		return;
-  	}
-  	
-  	SootClass sClass = (SootClass)_sClass;
+  public void MethodDecl.jimplify() {
+	System.out.println("I AM HERE");
+  	//SootClass sClass = (SootClass)_sClass;
+  	SootClass sClass = Scene.v().getSootClass(this.hostType().jvmName());
+  	System.out.println(sClass);
  	//TODO: Exceptions....
  	java.util.LinkedHashMap<Local, Type> params = this.getParametersSoot();
  	java.util.List<Type> types = new ArrayList<Type>(params.values());
- 	SootMethod method = new SootMethod(this.name(), types, this.type().sootType(), this.flags());
+ 	SootMethod method = new SootMethod(this.name(), types, this.type().sootType(), this.sootTypeModifiers());
    	sClass.addMethod(method);
    	JimpleBody body = Jimple.v().newBody(method);
     method.setActiveBody(body);
     this.addParamsToBody(body, params);
 	for(int i = 0; i < getNumChild(); i++) {
-  		getChild(i).jimplify(body);
+  		//getChild(i).jimplify(body);
   	}
   }
   
   //TODO: add dimensions...
-  public <T> void VariableDeclarator.jimplify(T _body) {
-  	if (!(_body instanceof JimpleBody)) {
-  		for (int i = 0; i < getNumChild(); i++) {
-  			getChild(i).jimplify(_body);
-  		}
-  		return;
-  	}
+  public void VariableDeclarator.jimplify(JimpleBody body) {
+
   	Expr init = this.getInit();
-  	JimpleBody body = (JimpleBody)_body;
   	Local newLocal = Jimple.v().newLocal(this.name(), this.type().sootType());
   	body.getLocals().add(newLocal);
   	if (this.hasInit()) {
@@ -187,17 +153,11 @@ aspect InfiniteJast {
   	this.local = newLocal;
   }
   
-  public <T> void ReturnStmt.jimplify(T _units) {
-  	if (!(_units instanceof Chain)) {
-  		for (int i = 0; i < getNumChild(); i++) {
-  			getChild(i).jimplify(_units);
-  		}
-  		return;
-  	}
-  	Chain units = (Chain)_units;
+  public void ReturnStmt.jimplify(Chain units) {
+
   	units.add(Jimple.v().newReturnVoidStmt());
 	for(int i = 0; i < getNumChild(); i++) {
-		getChild(i).jimplify(units);
+		//getChild(i).jimplify();
 	}
   }
   

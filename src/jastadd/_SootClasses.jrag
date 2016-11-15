@@ -8,6 +8,7 @@ aspect _SootClasses {
   	
   	SootClass sc = Scene.v().loadClass(this.jvmName(), SootClass.SIGNATURES);
   	sc.setLibraryClass();
+  	this.sootClass = sc;
   	return sc;
   }
   
@@ -23,6 +24,7 @@ aspect _SootClasses {
   	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
   	Scene.v().addClass(sc);
   	sc.setApplicationClass();
+  	this.sootClass = sc;
   	if (!this.isObject()) { sc.setSuperclass(typeObject().getSootClassDecl()); }
   	return sc;
   }
@@ -32,6 +34,7 @@ aspect _SootClasses {
   	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
   	Scene.v().addClass(sc);
   	sc.setApplicationClass();
+  	this.sootClass = sc;
   	return sc;
   }
   

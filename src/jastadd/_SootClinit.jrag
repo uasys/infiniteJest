@@ -15,7 +15,7 @@ aspect _SootClinit {
   	return false;
   }
   
-  public <T> void TypeDecl.jimplify(T _sClass) {
+  public void TypeDecl.jimplify() {
   	boolean needsAndDoesntHaveClinit = this.needsClinit() && !this.getSootClassDecl().declaresMethod("<clinit>", new ArrayList());
   	if (needsAndDoesntHaveClinit) {
   		this.clinit = new SootMethod("<clinit>", new ArrayList(), soot.VoidType.v(), soot.Modifier.STATIC, new ArrayList());
@@ -24,7 +24,7 @@ aspect _SootClinit {
   	
   	for (Iterator iter = this.nestedTypes().iterator(); iter.hasNext(); ) {
   		TypeDecl typeDecl = (TypeDecl)iter.next();
-  		typeDecl.jimplify(_sClass);
+  		typeDecl.jimplify();
   	}
   	for (int i = 0; i < this.getNumBodyDecl(); i++) {
   		this.getBodyDecl(i).jimplify();
