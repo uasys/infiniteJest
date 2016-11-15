@@ -70,16 +70,11 @@ public class InfiniteJast extends Frontend {
 	  
 	  int retval = run(args, Program.defaultBytecodeReader(), Program.defaultJavaParser());
 	  	  
-	  if (program.options().hasOption("-jimple")) {
-		  Options.v().set_output_format(Options.output_format_jimple);
-	  }
+	  //if (program.options().hasOption("-jimple")) {
+		//  Options.v().set_output_format(Options.output_format_jimple);
+	  //}
+
 	  
-	  //TODO: Do I still need this? 
-	  /*
-	  PhaseOptions.v().setPhaseOption("jop", "enabled");
-	  PackManager.v().runBodyPacks();
-	  PackManager.v().writeOutput();
-	  */
 	  return retval;
   }
 

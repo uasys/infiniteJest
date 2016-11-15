@@ -33,7 +33,8 @@ aspect InfiniteJast {
   eq ClassDecl.sootClass() {
   	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
   	
-  	SootClass sc = new SootClass(this.jvmName()
+  	//SootClass sc = new SootClass(this.jvmName()
+  	return null;
   }
   
   eq ArrayDecl.getSootClassDecl() = typeObject().getSootClassDecl();
@@ -64,7 +65,14 @@ aspect InfiniteJast {
 			Printer.v().printTo(sClass, writerOut);
 			writerOut.flush();
 			streamOut.close();
+			/*	  
+	  		JasminClass jasminClass = new soot.jimple.JasminClass(sClass);
+	  		jasminClass.print(writerOut);
+	  		writerOut.flush();
+	  		streamOut.close();
+	  		* */
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
 			System.out.println("There was an error writing the jimple file");
 		}
     }
