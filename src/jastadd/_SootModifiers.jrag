@@ -1,0 +1,52 @@
+aspect _SootModifiers {
+
+  syn int MethodDecl.sootTypeModifiers() {
+  	int result = 0;
+  	if (this.isPublic())		result |= soot.Modifier.PUBLIC;
+  	if (this.isProtected())		result |= soot.Modifier.PROTECTED;
+  	if (this.isPrivate())		result |= soot.Modifier.PRIVATE;
+  	if (this.isFinal())			result |= soot.Modifier.FINAL;
+  	if (this.isStatic())		result |= soot.Modifier.STATIC;
+  	if (this.isAbstract())		result |= soot.Modifier.ABSTRACT;
+  	if (this.isSynchronized())	result |= soot.Modifier.SYNCHRONIZED;
+  	if (this.isStrictfp())		result |= soot.Modifier.STRICTFP;
+  	if (this.isNative())		result |= soot.Modifier.NATIVE;
+  	return result;
+  }
+  
+  syn int ConstructorDecl.sootTypeModifiers() {
+  	int result = 0;
+  	if (this.isPublic())	result |= soot.Modifier.PUBLIC;
+  	if (this.isProtected())	result |= soot.Modifier.PROTECTED;
+  	if (this.isPrivate())	result |= soot.Modifier.PRIVATE;
+  	return result;
+  }
+  
+  syn int FieldDeclarator.sootTypeModifiers() {
+  	int result = 0;
+  	if (this.isPublic()) 	result |= soot.Modifier.PUBLIC;
+  	if (this.isProtected()) result |= soot.Modifier.PROTECTED;
+  	if (this.isPrivate())	result |= soot.Modifier.PRIVATE;
+  	if (this.isFinal())		result |= soot.Modifier.FINAL;
+  	if (this.isStatic())	result |= soot.Modifier.STATIC;
+  	return result;
+  }
+  
+  eq InterfaceDecl.sootTypeModifiers() = super.sootTypeModifiers() | soot.Modifier.INTERFACE;
+  
+  syn int TypeDecl.sootTypeModifiers() {
+  	int result = 0;
+  	
+  	if (this.isNestedType())  		result |= soot.Modifier.PUBLIC;
+  	else if (this.isPublic()) 		result |= soot.Modifier.PUBLIC;
+  	else if (this.isProtected()) 	result |= soot.Modifier.PROTECTED;
+  	else if (this.isPrivate()) 		result |= soot.Modifier.PRIVATE;
+  	
+  	if (this.isFinal())				result |= soot.Modifier.FINAL;
+  	if (this.isStatic())			result |= soot.Modifier.STATIC;
+  	if (this.isAbstract())			result |= soot.Modifier.ABSTRACT;
+  	
+  	return result;
+  }
+  
+}

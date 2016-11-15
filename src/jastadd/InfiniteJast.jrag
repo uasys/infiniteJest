@@ -33,27 +33,42 @@ aspect InfiniteJast {
   eq ClassDecl.sootClass() {
   	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
   	
-  	//SootClass sc = new SootClass(this.jvmName()
-  	return null;
+  	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
+  	Scene.v().addClass(sc);
+  	sc.setApplicationClass();
+  	if (!this.isObject()) { sc.setSuperclass(typeObject().getSootClassDecl()); }
+  	return sc;
+  }
+  
+  eq InterfaceDecl.sootClass() {
+  	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
+  	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
+  	Scene.v().addClass(sc);
+  	sc.setApplicationClass();
+  	return sc;
   }
   
   eq ArrayDecl.getSootClassDecl() = typeObject().getSootClassDecl();
+ 
   
   public <T> void ClassDecl.jimplify(T _sClass) {
   	SootClass incoming = null;
 
-  	//do I need to always load and support java.lang.Object and java.lang.System?
-  	Scene.v().loadClassAndSupport("java.lang.Object");
-    Scene.v().loadClassAndSupport("java.lang.System");
     SootClass sClass = new SootClass(this.jvmName(), this.flags());
     sClass.setSuperclass(Scene.v().getSootClass(this.superclass().fullName()));
+    Collection<TypeDecl> interfaces = this.superInterfaces();
+   	for (TypeDecl _interface : interfaces) {
+   		if (!sClass.implementsInterface(_interface.getSootClassDecl().getName())) {
+    		sClass.addInterface(_interface.getSootClassDecl());
+    	}
+    }
     if (_sClass instanceof SootClass) {
   		incoming = (SootClass)_sClass;
   		sClass.setOuterClass(incoming);
   	}
     
-    //TODO: need to add implements...
-    List<Access> _implements = this.getImplementss();
+
+
     
     Scene.v().addClass(sClass);
     for(int i = 0; i < getNumChild(); i++) {
@@ -78,38 +93,7 @@ aspect InfiniteJast {
     }
   }
   
-  syn int MethodDecl.sootTypeModifiers() {
-  	int result = 0;
-  	if (this.isPublic())		result |= soot.Modifier.PUBLIC;
-  	if (this.isProtected())		result |= soot.Modifier.PROTECTED;
-  	if (this.isPrivate())		result |= soot.Modifier.PRIVATE;
-  	if (this.isFinal())			result |= soot.Modifier.FINAL;
-  	if (this.isStatic())		result |= soot.Modifier.STATIC;
-  	if (this.isAbstract())		result |= soot.Modifier.ABSTRACT;
-  	if (this.isSynchronized())	result |= soot.Modifier.SYNCHRONIZED;
-  	if (this.isStrictfp())		result |= soot.Modifier.STRICTFP;
-  	if (this.isNative())		result |= soot.Modifier.NATIVE;
-  	return result;
-  }
-  
-  syn int ConstructorDecl.sootTypeModifiers() {
-  	int result = 0;
-  	if (this.isPublic())	result |= soot.Modifier.PUBLIC;
-  	if (this.isProtected())	result |= soot.Modifier.PROTECTED;
-  	if (this.isPrivate())	result |= soot.Modifier.PRIVATE;
-  	return result;
-  }
-  
-  syn int FieldDeclarator.sootTypeModifiers() {
-  	int result = 0;
-  	if (this.isPublic()) 	result |= soot.Modifier.PUBLIC;
-  	if (this.isProtected()) result |= soot.Modifier.PROTECTED;
-  	if (this.isPrivate())	result |= soot.Modifier.PRIVATE;
-  	if (this.isFinal())		result |= soot.Modifier.FINAL;
-  	if (this.isStatic())	result |= soot.Modifier.STATIC;
-  	return result;
-  }
-  
+
   public SootField FieldDeclarator.sootField = null;
   
   public <T> void FieldDeclarator.jimplify(T _sClass) {
