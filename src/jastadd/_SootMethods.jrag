@@ -39,6 +39,20 @@
 	return method;
   }
   
+  syn lazy SootMethodRef MethodDecl.sootRef() {
+  	ArrayList parameters = new ArrayList();
+  	for (int i = 0; i < this.getNumParameter(); i++) {
+  		parameters.add(this.getParameter(i).type().sootType());
+  	}
+  	SootMethodRef ref = Scene.v().makeMethodRef(this.hostType().getSootClassDecl(),
+  		this.name(),
+  		parameters,
+  		this.type().sootType(),
+  		this.isStatic()
+  	);
+  	return ref;
+  }
+  
   inh TypeDecl ConstructorDecl.typeObject();
   
  syn java.util.LinkedHashMap<Local, Type> ConstructorDecl.getParametersSoot() {
@@ -93,4 +107,22 @@
     this.addParamsToBody(body, params);
   	return method; 	
   }
+  
+    syn lazy SootMethodRef ConstructorDecl.sootRef() {
+  	ArrayList parameters = new ArrayList();
+  	TypeDecl typeDecl = this.hostType();
+  	if (typeDecl.needsEnclosing()) {
+  		parameters.add(typeDecl.enclosingType().sootType());
+  	}
+  	if (typeDecl.needsSuperEnclosing()) {
+  		TypeDecl superClass = ((ClassDecl)typeDecl).superclass();
+  		parameters.add(superClass.enclosingType().sootType());
+  	}
+  	for (int i = 0; i < this.getNumParameter(); i++) {
+  		parameters.add(this.getParameter(i).type().sootType());
+  	}
+  	SootMethodRef ref = Scene.v().makeConstructorRef(this.hostType().getSootClassDecl(), parameters);
+  	return ref;
+  }
+
 }
