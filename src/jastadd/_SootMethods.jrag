@@ -124,5 +124,39 @@
   	SootMethodRef ref = Scene.v().makeConstructorRef(this.hostType().getSootClassDecl(), parameters);
   	return ref;
   }
+  
+  public SootField FieldDeclarator.sootField;
+  syn lazy SootField FieldDeclarator.sootField() {
+  	String name = this.name();
+  	soot.Type type = this.type().sootType();
+  	int modifiers = this.sootTypeModifiers();
+  	SootField f = new SootField(name, type, modifiers);
+  	boolean fieldIsStaticFinalConstantBuiltinType = this.isStatic() &&
+  													this.isFinal() &&
+  													this.isConstant() &&
+  													(this.type().isPrimitive() || this.type().isString());
+  	this.hostType().getSootClassDecl().addField(f);
+  	if (!fieldIsStaticFinalConstantBuiltinType) {
+  		return f;
+  	}
+  	
+  	if (this.type().isString()) {
+  		f.addTag(new soot.tagkit.StringConstantValueTag(constant().stringValue()));
+  	} else if (this.type().isLong()) {
+  		f.addTag(new soot.tagkit.LongConstantValueTag(constant().longValue()));
+  	} else if (this.type().isDouble()) {
+  		f.addTag(new soot.tagkit.DoubleConstantValueTag(constant().doubleValue()));
+  	} else if (this.type().isFloat()) {
+  		f.addTag(new soot.tagkit.FloatConstantValueTag(constant().floatValue()));
+  	} else if (this.type().isIntegralType()) {
+  		f.addTag(new soot.tagkit.IntegerConstantValueTag(constant().intValue()));
+  	}
+  	
+	return f;
+  }
+  
+  public SootField FieldDeclarator.sootRef() =
+  	Scene.v().makeFieldRef(this.hostType().getSootClassDecl(), this.name(), this.type().sootType(), this.isStatic());
+  
 
 }

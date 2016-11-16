@@ -48,7 +48,6 @@ aspect InfiniteJast {
   public void InterfaceDecl.jimplify() {
   	SootClass sc = this.getSootClassDecl();
   	sc.setResolvingLevel(SootClass.HIERARCHY);
-  	super.jimplify();
   	sc.setResolvingLevel(SootClass.SIGNATURES);
   	
   	try {
@@ -70,48 +69,14 @@ aspect InfiniteJast {
 	}
   }
   
-
-  public SootField FieldDeclarator.sootField = null;
-  
-  public void FieldDeclarator.jimplify(SootClass sClass) {
-  	
-  	String name = this.name();
-  	soot.Type type = this.type().sootType();
-  	int modifiers = this.sootTypeModifiers();
-  	boolean thisClassDeclaresThisField = !this.hostType().getSootClassDecl().declaresFieldByName(name);
-  	
-	if (!thisClassDeclaresThisField) {
-		this.sootField = hostType().getSootClassDecl().getFieldByName(name);
-		//addAttributes()
-		return;
-	}
-	
-  	SootField f = new SootField(name, type, modifiers);
-  	boolean fieldIsStaticFinalConstantBuiltinType = this.isStatic() &&
-  													this.isFinal() &&
-  													this.isConstant() &&
-  													(this.type().isPrimitive() || this.type().isString());
-  	if (!fieldIsStaticFinalConstantBuiltinType) {
-  		this.sootField = f;
-  		//addAttributes();
-  		return;
+  public void FieldDecl.jimplify() {
+  	for(int i = 0; i < getNumChild(); i++) {
+  		getChild(i).jimplify();
   	}
-  	
-  	if (this.type().isString()) {
-  		f.addTag(new soot.tagkit.StringConstantValueTag(constant().stringValue()));
-  	} else if (this.type().isLong()) {
-  		f.addTag(new soot.tagkit.LongConstantValueTag(constant().longValue()));
-  	} else if (this.type().isDouble()) {
-  		f.addTag(new soot.tagkit.DoubleConstantValueTag(constant().doubleValue()));
-  	} else if (this.type().isFloat()) {
-  		f.addTag(new soot.tagkit.FloatConstantValueTag(constant().floatValue()));
-  	} else if (this.type().isIntegralType()) {
-  		f.addTag(new soot.tagkit.IntegerConstantValueTag(constant().intValue()));
-  	}
-  	
-  	this.sootField = f;
-  	//addAttributes();
-  	return;
+  }
+    
+  public void FieldDeclarator.jimplify() {
+  	this.sootField();
   }
   
   public void BodyDecl.jimplify() {
