@@ -28,6 +28,11 @@ aspect _SootClasses {
     		sClass.addInterface(_interface.getSootClassDecl());
     	}
     }
+    
+    if (this.hasImplicitConstructor()) {
+    	this.getImplicitConstructor().jimplify();
+    }
+    
   	return sClass;
   }
   

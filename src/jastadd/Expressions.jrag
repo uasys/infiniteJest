@@ -32,6 +32,12 @@ aspect Expressions {
 		return newLocal;
 	}
 	
+	public Local Expr.saveInTempLocal(Body b) {
+		Local newLocal = this.getTempLocal(b);
+		this.saveLocalValue(b, newLocal, this.emit(b));
+		return newLocal;
+	}
+	
 	// abstract general case
 	public soot.Value Expr.emit(Body b) { 
 		throw new Error("Operation emit not supported for " + getClass().getName());

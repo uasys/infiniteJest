@@ -91,7 +91,6 @@
   public SootMethod ConstructorDecl.sootMethod;
   syn lazy SootMethod ConstructorDecl.sootMethod() {
   	SootClass sClass = this.hostType().getSootClassDecl();
-  	System.out.println(sClass.getName());
   	java.util.LinkedHashMap<Local, Type> params = this.getParametersSoot();
   	java.util.List<Type> types = new ArrayList<Type>(params.values());
   	ArrayList throwtypes = new ArrayList();

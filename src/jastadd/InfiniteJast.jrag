@@ -39,12 +39,15 @@ aspect InfiniteJast {
 		Printer.v().printTo(sClass, writerOut);
 		writerOut.flush();
 		streamOut.close();
-		/*	  
+
+		 /*
+    	String fileName = SourceLocator.v().getFileNameFor(sClass, soot.options.Options.output_format_class);
+    	OutputStream streamOut = new FileOutputStream(fileName);
+		PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut));
 	  	JasminClass jasminClass = new soot.jimple.JasminClass(sClass);
 	  	jasminClass.print(writerOut);
 	  	writerOut.flush();
-	  	streamOut.close();
-	  	*/
+	  	streamOut.close();*/
 	} catch (Exception e) {
 		System.out.println(e.getMessage());
 		System.out.println("There was an error writing the jimple file");
@@ -54,6 +57,7 @@ aspect InfiniteJast {
   public void InterfaceDecl.jimplify() {
   	SootClass sc = this.getSootClassDecl();
   	sc.setResolvingLevel(SootClass.HIERARCHY);
+  	super.jimplify();
   	sc.setResolvingLevel(SootClass.SIGNATURES);
   	
   	try {
@@ -93,8 +97,12 @@ aspect InfiniteJast {
   	for (int i = 0; i < this.getNumChild(); i++) {
 		this.getChild(i).jimplify((JimpleBody)method.getActiveBody());
   	}
+	if( method.getReturnType().equals(soot.VoidType.v())) {
+		//TODO: not sure if we still need this...
+		//method.getActiveBody().getUnits().add(Jimple.v().newReturnVoidStmt());
+	}
   }
-  
+    
   public void ConstructorDecl.jimplify() {
 	this.sootMethod();
   }
@@ -102,7 +110,6 @@ aspect InfiniteJast {
   
   //TODO: add dimensions...
   public void VariableDeclarator.jimplify(JimpleBody body) {
-	System.out.println("DECLARING A VARIABLE");
   	Expr init = this.getInit();
   	Local newLocal = Jimple.v().newLocal(this.name(), this.type().sootType());
   	body.getLocals().add(newLocal);
@@ -114,12 +121,15 @@ aspect InfiniteJast {
   	this.local = newLocal;
   }
   
-  public void ReturnStmt.jimplify(Chain units) {
-
-  	units.add(Jimple.v().newReturnVoidStmt());
-	for(int i = 0; i < getNumChild(); i++) {
-		//getChild(i).jimplify();
-	}
+  public void ReturnStmt.jimplify(JimpleBody body) {
+	Chain units = body.getUnits();
+	if (this.hasResult()) {
+  		Expr result = this.getResult();
+  		Local newLocal = result.saveInTempLocal(body);
+  		units.add(Jimple.v().newRetStmt(newLocal));
+  	} else {
+  		units.add(Jimple.v().newReturnVoidStmt());
+  	}
   }
   
   public Local VariableDeclarator.local = null;
