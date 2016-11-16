@@ -155,8 +155,8 @@
 	return f;
   }
   
-  public SootField FieldDeclarator.sootRef() =
-  	Scene.v().makeFieldRef(this.hostType().getSootClassDecl(), this.name(), this.type().sootType(), this.isStatic());
-  
+  public SootFieldRef FieldDeclarator.sootRef() {
+  	return Scene.v().makeFieldRef(this.hostType().getSootClassDecl(), this.name(), this.type().sootType(), this.isStatic());
+  }
 
 }
