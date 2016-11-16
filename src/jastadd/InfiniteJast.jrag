@@ -20,6 +20,12 @@ aspect InfiniteJast {
   	}
   }
   
+  public void ASTNode.jimplify(JimpleBody body) {
+  	for(int i = 0; i < this.getNumChild(); i++) {
+  		this.getChild(i).jimplify(body);
+  	}
+  }
+  
   public void ClassDecl.jimplify() {
 
     SootClass sClass = this.getSootClassDecl();
@@ -83,17 +89,20 @@ aspect InfiniteJast {
   }
   
   public void MethodDecl.jimplify() {
-  	this.sootMethod();
+  	SootMethod method = this.sootMethod();
+  	for (int i = 0; i < this.getNumChild(); i++) {
+		this.getChild(i).jimplify((JimpleBody)method.getActiveBody());
+  	}
   }
   
   public void ConstructorDecl.jimplify() {
 	this.sootMethod();
   }
-
+  
   
   //TODO: add dimensions...
   public void VariableDeclarator.jimplify(JimpleBody body) {
-
+	System.out.println("DECLARING A VARIABLE");
   	Expr init = this.getInit();
   	Local newLocal = Jimple.v().newLocal(this.name(), this.type().sootType());
   	body.getLocals().add(newLocal);

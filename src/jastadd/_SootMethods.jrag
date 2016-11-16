@@ -54,7 +54,6 @@
   }
   
   inh TypeDecl ConstructorDecl.typeObject();
-  
  syn java.util.LinkedHashMap<Local, Type> ConstructorDecl.getParametersSoot() {
   	List<ParameterDeclaration> params = this.getParameterList();
   	java.util.LinkedHashMap<Local, Type> sootParams = new java.util.LinkedHashMap<Local, Type>();
