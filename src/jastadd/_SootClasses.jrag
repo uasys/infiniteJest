@@ -1,14 +1,11 @@
 aspect _SootClasses {
 
-  public SootClass TypeDecl.sootClass;
+
   syn lazy SootClass TypeDecl.getSootClassDecl() {
-  	if (compilationUnit().fromSource()) { return this.sootClass == null ? this.sootClass() : this.sootClass; }
-  	
+  	if (compilationUnit().fromSource()) { return this.sootClass(); }
   	//if (this.options().verbose()) { System.out.println("Loading .class file " + this.jvmName()); }
-  	
   	SootClass sc = Scene.v().loadClass(this.jvmName(), SootClass.SIGNATURES);
   	sc.setLibraryClass();
-  	this.sootClass = sc;
   	return sc;
   }
   
@@ -16,25 +13,40 @@ aspect _SootClasses {
   
   
   syn lazy SootClass TypeDecl.sootClass() = null;
-  public SootClass ClassDecl.sootClass;
-  public SootClass InterfaceDecl.sootClass;
+  
   eq ClassDecl.sootClass() {
   	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
-  	
-  	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
-  	Scene.v().addClass(sc);
-  	sc.setApplicationClass();
-  	this.sootClass = sc;
-  	if (!this.isObject()) { sc.setSuperclass(typeObject().getSootClassDecl()); }
-  	return sc;
+  	SootClass sClass = new SootClass(this.jvmName(), this.sootTypeModifiers());
+  	Scene.v().addClass(sClass);
+  	sClass.setApplicationClass();
+    sClass.setSuperclass(Scene.v().getSootClass(this.superclass().jvmName()));
+    if (this.isNestedType()) { sClass.setOuterClass(this.enclosingType().getSootClassDecl()); }
+    Collection<TypeDecl> interfaces = this.superInterfaces();
+    
+    for (TypeDecl _interface : interfaces) {
+   		if (!sClass.implementsInterface(_interface.getSootClassDecl().getName())) {
+    		sClass.addInterface(_interface.getSootClassDecl());
+    	}
+    }
+  	return sClass;
   }
   
   eq InterfaceDecl.sootClass() {
   	//if (this.options().verbose()) { System.out.println("Creating from source " + this.jvmName()); }
   	SootClass sc = new SootClass(this.jvmName(), this.sootTypeModifiers());
+  	sc.setResolvingLevel(SootClass.DANGLING);
+  	SourceFileTag st = new soot.tagkit.SourceFileTag(this.sourceNameWithoutPath());
+  	sc.addTag(st);
+  	sc.setSuperclass(this.typeObject().getSootClassDecl());
   	Scene.v().addClass(sc);
   	sc.setApplicationClass();
-  	this.sootClass = sc;
+  	  	
+  	for (Iterator iter = this.interfacesIterator(); iter.hasNext(); ) {
+  		TypeDecl typeDecl = (TypeDecl)iter.next();
+  		if (typeDecl != this.typeObject() && !sc.implementsInterface(typeDecl.getSootClassDecl().getName()))
+  			sc.addInterface(typeDecl.getSootClassDecl());
+  	}
+  	if (this.isNestedType()) { sc.setOuterClass(this.enclosingType().getSootClassDecl()); }
   	return sc;
   }
   

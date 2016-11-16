@@ -22,56 +22,52 @@ aspect InfiniteJast {
   
   public void ClassDecl.jimplify() {
 
-    SootClass sClass = new SootClass(this.jvmName(), this.sootTypeModifiers());
-    sClass.setSuperclass(Scene.v().getSootClass(this.superclass().jvmName()));
-    Collection<TypeDecl> interfaces = this.superInterfaces();
-   	for (TypeDecl _interface : interfaces) {
-   		if (!sClass.implementsInterface(_interface.getSootClassDecl().getName())) {
-    		sClass.addInterface(_interface.getSootClassDecl());
-    	}
-    }
-	if (this.isNestedType())
-		sClass.setOuterClass(this.enclosingType().getSootClassDecl());
-    Scene.v().addClass(sClass);
+    SootClass sClass = this.getSootClassDecl();
     sClass.setResolvingLevel(SootClass.HIERARCHY);
     super.jimplify();
     sClass.setResolvingLevel(SootClass.SIGNATURES);
-    	try {
-    		String fileName = SourceLocator.v().getFileNameFor(sClass, soot.options.Options.output_format_jimple);
-			OutputStream streamOut = new FileOutputStream(fileName);
-			PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut));
-			Printer.v().printTo(sClass, writerOut);
-			writerOut.flush();
-			streamOut.close();
-			/*	  
-	  		JasminClass jasminClass = new soot.jimple.JasminClass(sClass);
-	  		jasminClass.print(writerOut);
-	  		writerOut.flush();
-	  		streamOut.close();
-	  		* */
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			System.out.println("There was an error writing the jimple file");
-		}
+    try {
+    	String fileName = SourceLocator.v().getFileNameFor(sClass, soot.options.Options.output_format_jimple);
+		OutputStream streamOut = new FileOutputStream(fileName);
+		PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut));
+		Printer.v().printTo(sClass, writerOut);
+		writerOut.flush();
+		streamOut.close();
+		/*	  
+	  	JasminClass jasminClass = new soot.jimple.JasminClass(sClass);
+	  	jasminClass.print(writerOut);
+	  	writerOut.flush();
+	  	streamOut.close();
+	  	*/
+	} catch (Exception e) {
+		System.out.println(e.getMessage());
+		System.out.println("There was an error writing the jimple file");
+	}
   }
   
   public void InterfaceDecl.jimplify() {
   	SootClass sc = this.getSootClassDecl();
-  	sc.setResolvingLevel(SootClass.DANGLING);
-  	SourceFileTag st = new soot.tagkit.SourceFileTag(this.sourceNameWithoutPath());
-  	sc.addTag(st);
-  	sc.setSuperclass(this.typeObject().getSootClassDecl());
-  	for (Iterator iter = this.interfacesIterator(); iter.hasNext(); ) {
-  		TypeDecl typeDecl = (TypeDecl)iter.next();
-  		if (typeDecl != this.typeObject() && !sc.implementsInterface(typeDecl.getSootClassDecl().getName()))
-  			sc.addInterface(typeDecl.getSootClassDecl());
-  	}
-  	if (this.isNestedType()) {
-  		sc.setOuterClass(this.enclosingType().getSootClassDecl());
-  	}
   	sc.setResolvingLevel(SootClass.HIERARCHY);
   	super.jimplify();
   	sc.setResolvingLevel(SootClass.SIGNATURES);
+  	
+  	try {
+    	String fileName = SourceLocator.v().getFileNameFor(sc, soot.options.Options.output_format_jimple);
+		OutputStream streamOut = new FileOutputStream(fileName);
+		PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut));
+		Printer.v().printTo(sc, writerOut);
+		writerOut.flush();
+		streamOut.close();
+		/*	  
+	  	JasminClass jasminClass = new soot.jimple.JasminClass(sClass);
+	  	jasminClass.print(writerOut);
+	  	writerOut.flush();
+	  	streamOut.close();
+	  	*/
+	} catch (Exception e) {
+		System.out.println(e.getMessage());
+		System.out.println("There was an error writing the jimple file");
+	}
   }
   
 
@@ -120,24 +116,32 @@ aspect InfiniteJast {
   
   public void BodyDecl.jimplify() {
   }
-
+  
   public void MethodDecl.jimplify() {
-	System.out.println("I AM HERE");
-  	//SootClass sClass = (SootClass)_sClass;
-  	SootClass sClass = Scene.v().getSootClass(this.hostType().jvmName());
+  	this.sootMethod();
+  }
+  
+  inh TypeDecl MethodDecl.typeObject();
+  public SootMethod MethodDecl.sootMethod;
+  syn lazy SootMethod MethodDecl.sootMethod() {
+  	SootClass sClass = this.hostType().getSootClassDecl();
   	System.out.println(sClass);
  	//TODO: Exceptions....
  	java.util.LinkedHashMap<Local, Type> params = this.getParametersSoot();
  	java.util.List<Type> types = new ArrayList<Type>(params.values());
- 	SootMethod method = new SootMethod(this.name(), types, this.type().sootType(), this.sootTypeModifiers());
+   	ArrayList throwtypes = new ArrayList();
+   	for (int i = 0; i < this.getNumException(); i++) {
+   		throwtypes.add(this.getException(i).type().getSootClassDecl());
+   	}
+   	SootMethod method = new SootMethod(this.name(), types, this.type().sootType(), this.sootTypeModifiers(), throwtypes);
    	sClass.addMethod(method);
+   	
    	JimpleBody body = Jimple.v().newBody(method);
     method.setActiveBody(body);
     this.addParamsToBody(body, params);
-	for(int i = 0; i < getNumChild(); i++) {
-  		//getChild(i).jimplify(body);
-  	}
+	return method;
   }
+
   
   //TODO: add dimensions...
   public void VariableDeclarator.jimplify(JimpleBody body) {
