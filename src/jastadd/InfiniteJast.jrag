@@ -121,25 +121,8 @@ aspect InfiniteJast {
   	this.sootMethod();
   }
   
-  inh TypeDecl MethodDecl.typeObject();
-  public SootMethod MethodDecl.sootMethod;
-  syn lazy SootMethod MethodDecl.sootMethod() {
-  	SootClass sClass = this.hostType().getSootClassDecl();
-  	System.out.println(sClass);
- 	//TODO: Exceptions....
- 	java.util.LinkedHashMap<Local, Type> params = this.getParametersSoot();
- 	java.util.List<Type> types = new ArrayList<Type>(params.values());
-   	ArrayList throwtypes = new ArrayList();
-   	for (int i = 0; i < this.getNumException(); i++) {
-   		throwtypes.add(this.getException(i).type().getSootClassDecl());
-   	}
-   	SootMethod method = new SootMethod(this.name(), types, this.type().sootType(), this.sootTypeModifiers(), throwtypes);
-   	sClass.addMethod(method);
-   	
-   	JimpleBody body = Jimple.v().newBody(method);
-    method.setActiveBody(body);
-    this.addParamsToBody(body, params);
-	return method;
+  public void ConstructorDecl.jimplify() {
+	this.sootMethod();
   }
 
   

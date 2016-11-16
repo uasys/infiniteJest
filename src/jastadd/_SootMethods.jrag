@@ -19,4 +19,78 @@
                      Jimple.v().newParameterRef(params.get(key), i++)));
   	}
   }
+  
+  inh TypeDecl MethodDecl.typeObject();
+  public SootMethod MethodDecl.sootMethod;
+  syn lazy SootMethod MethodDecl.sootMethod() {
+  	SootClass sClass = this.hostType().getSootClassDecl();
+ 	java.util.LinkedHashMap<Local, Type> params = this.getParametersSoot();
+ 	java.util.List<Type> types = new ArrayList<Type>(params.values());
+   	ArrayList throwtypes = new ArrayList();
+   	for (int i = 0; i < this.getNumException(); i++) {
+   		throwtypes.add(this.getException(i).type().getSootClassDecl());
+   	}
+   	SootMethod method = new SootMethod(this.name(), types, this.type().sootType(), this.sootTypeModifiers(), throwtypes);
+   	sClass.addMethod(method);
+   	
+   	JimpleBody body = Jimple.v().newBody(method);
+    method.setActiveBody(body);
+    this.addParamsToBody(body, params);
+	return method;
+  }
+  
+  inh TypeDecl ConstructorDecl.typeObject();
+  
+ syn java.util.LinkedHashMap<Local, Type> ConstructorDecl.getParametersSoot() {
+  	List<ParameterDeclaration> params = this.getParameterList();
+  	java.util.LinkedHashMap<Local, Type> sootParams = new java.util.LinkedHashMap<Local, Type>();
+  	TypeDecl typeDecl = this.hostType();
+  	if (typeDecl.needsEnclosing()) {
+  		System.out.println("needsEnclosing " + typeDecl.enclosingType().name());
+  		Local newLocal = Jimple.v().newLocal(typeDecl.enclosingType().name(), typeDecl.enclosingType().sootType());
+  		sootParams.put(newLocal, typeDecl.enclosingType().sootType());
+  	}
+  	if (typeDecl.needsSuperEnclosing()) {
+  		TypeDecl superClass = ((ClassDecl)typeDecl).superclass();
+  	  	System.out.println("needsSuperEnclosing " + superClass.enclosingType().name());
+  		Local newLocal = Jimple.v().newLocal(superClass.enclosingType().name(), superClass.enclosingType().sootType());
+  		sootParams.put(newLocal, superClass.enclosingType().sootType());
+  	}
+  	for (ParameterDeclaration param : params) {
+  		System.out.println("param " + param.name());
+  		Local newLocal = Jimple.v().newLocal(param.name(), param.type().sootType());
+  		sootParams.put(newLocal, param.type().sootType());
+  		param.local = newLocal;
+  	}
+  	return sootParams;
+  }
+  
+  public void ConstructorDecl.addParamsToBody(JimpleBody body, java.util.LinkedHashMap<Local, Type> params) {
+  	Chain units = body.getUnits();
+  	int i = 0;
+  	for (Local key: params.keySet()) {
+  		body.getLocals().add(key);
+  		units.add(Jimple.v().newIdentityStmt(key, 
+                     Jimple.v().newParameterRef(params.get(key), i++)));
+  	}
+  }
+  
+  public SootMethod ConstructorDecl.sootMethod;
+  syn lazy SootMethod ConstructorDecl.sootMethod() {
+  	SootClass sClass = this.hostType().getSootClassDecl();
+  	System.out.println(sClass.getName());
+  	java.util.LinkedHashMap<Local, Type> params = this.getParametersSoot();
+  	java.util.List<Type> types = new ArrayList<Type>(params.values());
+  	ArrayList throwtypes = new ArrayList();
+   	for (int i = 0; i < this.getNumException(); i++) {
+   		throwtypes.add(this.getException(i).type().getSootClassDecl());
+   	}
+   	TypeDecl typeDecl = this.hostType();
+   	SootMethod method = new SootMethod("<init>", types, soot.VoidType.v(), this.sootTypeModifiers(), throwtypes);  
+  	sClass.addMethod(method);
+  	JimpleBody body = Jimple.v().newBody(method);
+    method.setActiveBody(body);
+    this.addParamsToBody(body, params);
+  	return method; 	
+  }
 }
