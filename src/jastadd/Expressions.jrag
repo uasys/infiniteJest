@@ -257,7 +257,78 @@ aspect Expressions {
 		units.add(Jimple.v().newAssignStmt(lhs, newLocal));
 		return lhs;
 	}
-
+	
+	public soot.Value AssignMinusExpr.emit(Body b) {
+		soot.Value rhs = this.getSource().emit(b);
+		soot.Value lhs = this.getDest().emit(b);
+		Chain units = b.getUnits();
+		soot.jimple.SubExpr e = Jimple.v().newSubExpr(lhs, rhs);
+		Local newLocal = this.saveInTempLocal(b, e);
+		units.add(Jimple.v().newAssignStmt(lhs, newLocal));
+		return lhs;
+	}
+	
+	public soot.Value AssignLShiftExpr.emit(Body b) {
+		soot.Value rhs = this.getSource().emit(b);
+		soot.Value lhs = this.getDest().emit(b);
+		Chain units = b.getUnits();
+		soot.jimple.ShlExpr e = Jimple.v().newShlExpr(lhs, rhs);
+		Local newLocal = this.saveInTempLocal(b, e);
+		units.add(Jimple.v().newAssignStmt(lhs, newLocal));
+		return lhs;
+	}
+	
+	public soot.Value AssignRShiftExpr.emit(Body b) {
+		soot.Value rhs = this.getSource().emit(b);
+		soot.Value lhs = this.getDest().emit(b);
+		Chain units = b.getUnits();
+		soot.jimple.ShrExpr e = Jimple.v().newShrExpr(lhs, rhs);
+		Local newLocal = this.saveInTempLocal(b, e);
+		units.add(Jimple.v().newAssignStmt(lhs, newLocal));
+		return lhs;
+	}
+	
+	public soot.Value AssignURShiftExpr.emit(Body b) {
+		soot.Value rhs = this.getSource().emit(b);
+		soot.Value lhs = this.getDest().emit(b);
+		Chain units = b.getUnits();
+		soot.jimple.UshrExpr e = Jimple.v().newUshrExpr(lhs, rhs);
+		Local newLocal = this.saveInTempLocal(b, e);
+		units.add(Jimple.v().newAssignStmt(lhs, newLocal));
+		return lhs;
+	}
+	
+	public soot.Value AssignAndExpr.emit(Body b) {
+		soot.Value rhs = this.getSource().emit(b);
+		soot.Value lhs = this.getDest().emit(b);
+		Chain units = b.getUnits();
+		soot.jimple.AndExpr e = Jimple.v().newAndExpr(lhs, rhs);
+		Local newLocal = this.saveInTempLocal(b, e);
+		units.add(Jimple.v().newAssignStmt(lhs, newLocal));
+		return lhs;
+	}
+	
+	public soot.Value AssignXorExpr.emit(Body b) {
+		soot.Value rhs = this.getSource().emit(b);
+		soot.Value lhs = this.getDest().emit(b);
+		Chain units = b.getUnits();
+		soot.jimple.XorExpr e = Jimple.v().newXorExpr(lhs, rhs);
+		Local newLocal = this.saveInTempLocal(b, e);
+		units.add(Jimple.v().newAssignStmt(lhs, newLocal));
+		return lhs;
+	}
+	
+	public soot.Value AssignOrExpr.emit(Body b) {
+		soot.Value rhs = this.getSource().emit(b);
+		soot.Value lhs = this.getDest().emit(b);
+		Chain units = b.getUnits();
+		soot.jimple.OrExpr e = Jimple.v().newOrExpr(lhs, rhs);
+		Local newLocal = this.saveInTempLocal(b, e);
+		units.add(Jimple.v().newAssignStmt(lhs, newLocal));
+		return lhs;
+	}
+	
+	
 	public soot.Value AddExpr.emit(Body b) {
 		Local lhs = this.getLeftOperandLocal(b);
 		Local rhs = this.getRightOperandLocal(b);
