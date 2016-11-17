@@ -17,6 +17,7 @@ aspect Expressions {
 	
 	public Local Expr.getTempLocal(Body b) {
 		Local local = Jimple.v().newLocal("temp$" + Expr.getTempIdx(), this.type().sootType());
+		System.out.println("temp$ has type " + this.type().sootType());
 		b.getLocals().add(local);
 		return local;
 	}
@@ -120,10 +121,12 @@ aspect Expressions {
 	public soot.Value CastExpr.emit(Body b) {
 		//TODO: previous code had a lot of stuff in it... Was it just for eval to work?
 		if (this.isConstant()) return this.emitConstant(this.constant());
-		soot.Value operand = this.getExpr().emit(b);
-		Local local = this.saveInTempLocal(b, operand);
-		soot.jimple.CastExpr retval = Jimple.v().newCastExpr(local, this.type().sootType());
-		return retval;
+		
+		System.out.println(this.getExpr().prettyPrint());
+		soot.Value casted = Expr.newCastExpr(this.getExpr().emit(b), this.type());
+		Local local = this.getTempLocal(b);
+		b.getUnits().add(Jimple.v().newAssignStmt(local, casted));
+		return local;
 	}
 	
 	public soot.Value ASTNode.emitConstant(Constant constant) {
@@ -207,10 +210,12 @@ aspect Expressions {
 	}
 	
 	//TODO:
-	public void AssignExpr.getDestLocal(Body b) {
-		//interesting because destination is an address...
-		//soot.Value dest = this.getDest().
-		return;
+	public soot.Value AssignSimpleExpr.emit(Body b) {
+		soot.Value rhs = this.getSource().emit(b);
+		soot.Value lhs = this.getDest().emit(b);
+		Chain units = b.getUnits();
+		units.add(Jimple.v().newAssignStmt(lhs, rhs));
+		return lhs;
 	}
 
 	public soot.Value AddExpr.emit(Body b) {
@@ -315,7 +320,6 @@ aspect Expressions {
 		else if (var instanceof ParameterDeclaration) {
 			ParameterDeclaration decl = (ParameterDeclaration)var;
 			//TODO: host thing...
-			System.out.println("param");
 			return decl.local;
 		}
 		else if (var instanceof FieldDeclarator) {
@@ -327,6 +331,26 @@ aspect Expressions {
 		
 		//Just for now...
 		return null;
+	}
+
+	public soot.Value TypeDecl.emitCastTo(soot.Value v, TypeDecl type) {
+		if (this == type) return v;
+		if (this.isReferenceType() && type.isReferenceType() && this.instanceOf(type)) return v;
+		
+		boolean castToInt = (this.isLong()|| this instanceof FloatingPointType) && type.isIntegralType();
+		if (castToInt) { //TODO 
+			
+		}
+		
+		return Expr.newCastExpr(v, type);
+	}
+	
+	public static soot.Value Expr.newCastExpr(soot.Value v, TypeDecl type) {
+		return Jimple.v().newCastExpr(v, type.sootType());
+	}
+	
+	public soot.Value NullType.emitCastTo(soot.Value v, TypeDecl type) {
+		return v;
 	}
 	
 	/*

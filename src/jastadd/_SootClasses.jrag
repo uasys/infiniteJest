@@ -29,9 +29,7 @@ aspect _SootClasses {
     	}
     }
     
-    if (this.hasImplicitConstructor()) {
-    	this.getImplicitConstructor().jimplify();
-    }
+ 
     
   	return sClass;
   }

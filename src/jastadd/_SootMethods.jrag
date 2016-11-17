@@ -103,6 +103,15 @@
   	JimpleBody body = Jimple.v().newBody(method);
     method.setActiveBody(body);
     this.addParamsToBody(body, params);
+    
+    if (this.hasConstructorInvocation()) {
+    	System.out.println("CONSTRUCTOR INVOKATION " + this.getConstructorInvocation().prettyPrint());
+    	//super jimplify other statements...
+    	//Local newLocal = this.getConstructorInvocation().emit(body);
+    	//Chain units = body.getUnits();
+		//System.out.println(newLocal);		
+    }
+    
   	return method; 	
   }
   
