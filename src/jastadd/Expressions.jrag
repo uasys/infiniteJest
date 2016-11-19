@@ -487,7 +487,7 @@ aspect Expressions {
 	public soot.Value MethodAccess.emit(Body b) {
 		System.out.println("Method Access");
 		soot.Value v = this.prevExpr().emit(b);
-		Local newLocal = this.saveInTempLocal(b, v);
+		Local newLocal = this.prevExpr().saveInTempLocal(b, v);
 		MethodDecl decl = this.decl();
 		//ArrayList args = new ArrayList(1);
 		VirtualInvokeExpr expr = Jimple.v().newVirtualInvokeExpr(newLocal, decl.sootRef());
