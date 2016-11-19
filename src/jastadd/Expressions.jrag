@@ -434,10 +434,14 @@ aspect Expressions {
 			return decl.local;
 		}
 		else if (var instanceof FieldDeclarator) {
-			//TODO: 
+			System.out.println("VarAccess");
+			FieldDeclarator f = (FieldDeclarator)var;
+			ArrayList list = new ArrayList();
+			StaticFieldRef expr = Jimple.v().newStaticFieldRef(f.sootRef());
+			return expr;
 		}
 		else {
-		//TODO:
+			System.out.println(" I AM SOMETHING ELSE THAT REQUIRES ACCESSOR " );
 		}
 		
 		//Just for now...
@@ -462,6 +466,16 @@ aspect Expressions {
 	
 	public soot.Value NullType.emitCastTo(soot.Value v, TypeDecl type) {
 		return v;
+	}
+	
+	public soot.Value MethodAccess.emit(Body b) {
+		System.out.println("Method Access");
+		soot.Value v = this.prevExpr().emit(b);
+		Local newLocal = this.saveInTempLocal(b, v);
+		MethodDecl decl = this.decl();
+		//ArrayList args = new ArrayList(1);
+		VirtualInvokeExpr expr = Jimple.v().newVirtualInvokeExpr(newLocal, decl.sootRef());
+		return expr;
 	}
 	
 	/*
@@ -513,26 +527,5 @@ aspect Expressions {
 		return getDest().emitStore(b, lvalue, asImmediate(b, rvalue), this);
 	}*/
 	
-	//compound assign expression
-	/*
-	public soot.Value AssignExpr.emit(Body b) {
-		TypeDecl dest = getDest().type();
-		TypeDecl source = getSource().type();
-		boolean needsNumericPromotion = dest.isNumericType() && source.isNumericType();
-		TypeDecl type = needsNumericPromotion ? dest.binaryNumericPromotion(source) : dest;
-		// are you emituating an identifier?
-		Value lvalue = getDest().emit(b);
-		// if you are local I can modify you easily, if not that means you are a global and cloning is better?
-		Value v = lvalue instanceof Local ? lvalue : (Value)lvalue.clone();
-		Value value = b.newTemp(dest.emitCastTo(b, v, type, this));
-		Value rvalue = source.emitCastTo(b, getSource(), type);
-		Value result = asImmediate(b, type.emitCastTo(b,
-			createAssignOp(b, value, rvalue),
-			dest,
-			getDest()
-		));
-		getDest().emitStore(b, lvalue, result, this);
-		return result;
-	}*/
 	
 }

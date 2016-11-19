@@ -115,6 +115,7 @@ aspect InfiniteJast {
   
   //TODO: add dimensions...
   public void VariableDeclarator.jimplify(JimpleBody body) {
+  	System.out.println("VariableDeclarator");
   	Expr init = this.getInit();
   	Local newLocal = Jimple.v().newLocal(this.name(), this.type().sootType());
   	body.getLocals().add(newLocal);
@@ -139,7 +140,10 @@ aspect InfiniteJast {
   }
   
   public void ExprStmt.jimplify(JimpleBody body) {
-  	this.getExpr().emit(body);
+  	System.out.println("ExprStmt");
+  	Expr result = this.getExpr();
+  	soot.Value value = result.emit(body);
+  	Local newLocal = result.saveInTempLocal(body, value);
   }
   
   public Local VariableDeclarator.local = null;
