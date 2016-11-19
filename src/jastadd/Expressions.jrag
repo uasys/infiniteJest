@@ -21,7 +21,7 @@ aspect Expressions {
 		b.getLocals().add(local);
 		return local;
 	}
-	
+		
 	public void Expr.saveLocalValue(Body b, Local l, soot.Value val) {
 		Chain units = b.getUnits();
 		units.add(Jimple.v().newAssignStmt(l, val));
@@ -80,6 +80,22 @@ aspect Expressions {
 	
 	public soot.Value ParExpr.emit(Body b) {
 		return getExpr().emit(b);
+	}
+	
+	public soot.Value ArrayInit.emit(Body b) {
+		soot.Value size = this.emitConstant(new Constant.ConstantInt(getNumInit()));
+		NewArrayExpr array = Jimple.v().newNewArrayExpr(this.type().componentType().sootType(), size);
+		Local newLocal = this.saveInTempLocal(b, array);
+		Chain units = b.getUnits();
+		for(int i = 0; i < getNumInit(); i++) {
+			soot.Value rVal = this.type().emitCastTo(this.getInit(i).emit(b), this.type().componentType());
+			//soot.Value rVal = this.getInit(i).emit(b);
+			soot.Value index = this.emitConstant(new Constant.ConstantInt(i));
+			soot.Value lVal = ArrayDecl.newArrayRef(newLocal, index);
+			Local tempLocal = this.getInit(i).saveInTempLocal(b, rVal);
+			units.add(Jimple.v().newAssignStmt(lVal, tempLocal));
+		}
+		return newLocal;
 	}
 	
 	//general case...
@@ -434,7 +450,7 @@ aspect Expressions {
 			return decl.local;
 		}
 		else if (var instanceof FieldDeclarator) {
-			System.out.println("VarAccess");
+			System.out.println("FieldAccess");
 			FieldDeclarator f = (FieldDeclarator)var;
 			ArrayList list = new ArrayList();
 			StaticFieldRef expr = Jimple.v().newStaticFieldRef(f.sootRef());
@@ -476,6 +492,10 @@ aspect Expressions {
 		//ArrayList args = new ArrayList(1);
 		VirtualInvokeExpr expr = Jimple.v().newVirtualInvokeExpr(newLocal, decl.sootRef());
 		return expr;
+	}
+	
+	public static soot.jimple.ArrayRef ArrayDecl.newArrayRef(Value base, Value index) {
+		return Jimple.v().newArrayRef(base, index);
 	}
 	
 	/*

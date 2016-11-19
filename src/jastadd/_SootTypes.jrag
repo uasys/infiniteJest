@@ -1,4 +1,8 @@
+import soot.jimple.*;
+
+
 aspect _SootTypes {
+
   syn soot.Type ArrayDecl.sootType() {
   	//TODO: not actually true for Reference types... right?
   	//I will probably need to find the element type and then write a string myself...
