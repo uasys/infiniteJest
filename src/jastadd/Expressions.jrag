@@ -489,8 +489,14 @@ aspect Expressions {
 		soot.Value v = this.prevExpr().emit(b);
 		Local newLocal = this.prevExpr().saveInTempLocal(b, v);
 		MethodDecl decl = this.decl();
-		//ArrayList args = new ArrayList(1);
-		VirtualInvokeExpr expr = Jimple.v().newVirtualInvokeExpr(newLocal, decl.sootRef());
+		ArrayList args = new ArrayList();
+		for (int i = 0; i < this.getNumArg(); i++) {
+			Expr e = this.getArg(i);
+			soot.Value v2 = e.emit(b);
+			Local argLocal = e.saveInTempLocal(b, v2);
+			args.add((soot.Value)argLocal);
+		}
+		VirtualInvokeExpr expr = Jimple.v().newVirtualInvokeExpr(newLocal, decl.sootRef(), args);
 		return expr;
 	}
 	
