@@ -103,7 +103,7 @@ aspect InfiniteJast {
   	}
 	if( method.getReturnType().equals(soot.VoidType.v())) {
 		//TODO: not sure if we still need this...
-		//method.getActiveBody().getUnits().add(Jimple.v().newReturnVoidStmt());
+		method.getActiveBody().getUnits().add(Jimple.v().newReturnVoidStmt());
 	}
   }
     
@@ -144,7 +144,12 @@ aspect InfiniteJast {
   	System.out.println("ExprStmt");
   	Expr result = this.getExpr();
   	soot.Value value = result.emit(body);
-  	Local newLocal = result.saveInTempLocal(body, value);
+  	if (result.type().isVoid()) {
+		body.getUnits().add(Jimple.v().newInvokeStmt(value));
+		
+  	} else {
+  		result.saveInTempLocal(body, value);
+  	}
   }
   
   public Local VariableDeclarator.local = null;
