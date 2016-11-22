@@ -165,8 +165,13 @@ aspect InfiniteJast {
 	EqExpr negation = Jimple.v().newEqExpr(condition, this.getCondition().emitConstant(new Constant.ConstantBoolean(false)));
 	//body.getUnits().add(negation);
 	body.getUnits().add(soot_then_branch_label());
-	
-  	soot.jimple.IfStmt ifStmt = Jimple.v().newIfStmt(negation, endBranch);
+	soot.jimple.IfStmt ifStmt;
+	if (this.hasElse()) {
+		ifStmt = Jimple.v().newIfStmt(negation, soot_else_branch_label());
+	} else {
+  		ifStmt = Jimple.v().newIfStmt(negation, endBranch);
+  	}
+  	
   	body.getUnits().add(ifStmt);
   	this.getThen().jimplify(body);
   	
@@ -174,7 +179,8 @@ aspect InfiniteJast {
   		body.getUnits().add(Jimple.v().newGotoStmt(soot_else_branch_label()));
   	}
   	if (this.hasElse()) {
-  		body.getUnits().add(soot_else_branch_label());
+  	  	body.getUnits().add(soot_else_branch_label());
+  		this.getElse().jimplify(body);
   	} else {
   		body.getUnits().add(endBranch);
   	}
