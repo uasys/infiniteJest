@@ -82,4 +82,21 @@ aspect BooleanExpressions {
 	eq OrLogicalExpr.getRightOperand().condition_true_label() = this.true_label();
 	
 	
+	public soot.Value RelationalExpr.emit(Body b) { 
+		System.out.println("Hello world");
+		return this.emitBooleanCondition(b);
+	}
+	
+	protected soot.Value Expr.emitBooleanCondition(Body b) {
+		//this.emitBranch(b);
+		soot.jimple.Stmt end_label = this.newLabel();
+		b.getUnits().add(this.false_label());
+		Local result = this.saveInTempLocal(b, this.emitConstant(new Constant.ConstantBoolean(false)));
+		b.getUnits().add(Jimple.v().newGotoStmt(end_label));
+		b.getUnits().add(this.true_label());
+		this.saveInTempLocal(b, this.emitConstant(new Constant.ConstantBoolean(true)));
+		b.getUnits().add(end_label);
+		return result;
+	}
+	
 }

@@ -423,6 +423,13 @@ aspect Expressions {
 		soot.jimple.XorExpr retval = Jimple.v().newXorExpr(lhs, rhs);
 		return retval;
 	}
+	/*
+	public soot.Value LTExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.LtExpr retval = Jimple.v().newLtExpr(lhs, rhs);
+		return retval;
+	}*/
 	
 	/*
 	public soot.Value AssingPlusExpr.emit(Body b) {

@@ -152,6 +152,35 @@ aspect InfiniteJast {
   	}
   }
   
+  public void Expr.emitEvalBranch(Body b) {
+  	//EqExpr eqExpr 
+  	//IfStmt ifStmt = Jimple.v().newIfStmt()
+  }
+  
+  public void IfStmt.jimplify(JimpleBody body) {
+  	soot.jimple.Stmt endBranch = this.newLabel();
+  	soot.jimple.Stmt thenBranch = this.newLabel();
+	soot.Value value = this.getCondition().emit(body);
+	Local condition = this.getCondition().saveInTempLocal(body);
+	EqExpr negation = Jimple.v().newEqExpr(condition, this.getCondition().emitConstant(new Constant.ConstantBoolean(false)));
+	//body.getUnits().add(negation);
+	body.getUnits().add(soot_then_branch_label());
+	
+  	soot.jimple.IfStmt ifStmt = Jimple.v().newIfStmt(negation, endBranch);
+  	body.getUnits().add(ifStmt);
+  	this.getThen().jimplify(body);
+  	
+  	if (this.getThen().canCompleteNormally() && this.hasElse()) {
+  		body.getUnits().add(Jimple.v().newGotoStmt(soot_else_branch_label()));
+  	}
+  	if (this.hasElse()) {
+  		body.getUnits().add(soot_else_branch_label());
+  	} else {
+  		body.getUnits().add(endBranch);
+  	}
+  	
+  }
+  
   public Local VariableDeclarator.local = null;
   public Local ParameterDeclaration.local = null;
   /*
