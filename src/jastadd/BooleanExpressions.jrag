@@ -1,0 +1,66 @@
+aspect BooleanExpressions {
+
+	public soot.jimple.Stmt ASTNode.newLabel() {
+		return soot.jimple.Jimple.v().newNopStmt();
+	}
+	
+	syn lazy soot.jimple.Stmt Expr.false_label() = this.getParent().definesLabel() ? this.condition_false_label() : this.newLabel();
+	syn lazy soot.jimple.Stmt Expr.true_label() = this.getParent().definesLabel() ? this.condition_true_label() : this.newLabel();
+	
+	syn boolean ASTNode.definesLabel() = false;
+	eq Opt.definesLabel() = this.getParent().definesLabel();
+	eq List.definesLabel() = this.getParent().definesLabel();
+	eq AbstractDot.definesLabel() = this.getParent().definesLabel();
+	eq ParExpr.definesLabel() = this.getParent().definesLabel();
+	
+	eq LogNotExpr.definesLabel() = true;
+	eq ConditionalExpr.definesLabel() = true;
+	eq RelationalExpr.definesLabel() = false;
+	
+	eq LogicalExpr.definesLabel() = true;
+	eq IfStmt.definesLabel() = true;
+	eq WhileStmt.definesLabel() = true;
+	eq DoStmt.definesLabel() = true;
+	eq ForStmt.definesLabel() = true;
+	
+	syn lazy soot.jimple.Stmt DoStmt.soot_begin_label() = newLabel();
+	syn lazy soot.jimple.Stmt ForStmt.soot_begin_label() = newLabel();
+	 syn lazy soot.jimple.Stmt WhileStmt.soot_end_label() = newLabel();
+	 syn lazy soot.jimple.Stmt DoStmt.soot_end_label() = newLabel();
+	syn lazy soot.jimple.Stmt IfStmt.soot_else_branch_label() = newLabel();
+	syn lazy soot.jimple.Stmt IfStmt.soot_then_branch_label() = newLabel();
+	syn lazy soot.jimple.Stmt LabeledStmt.soot_end_label() = newLabel();
+	syn lazy soot.jimple.Stmt ForStmt.soot_end_label() = newLabel();
+	syn lazy soot.jimple.Stmt WhileStmt.soot_stmt_label() = newLabel();
+	
+	syn lazy soot.jimple.Stmt ConditionalExpr.soot_else_branch_label() = this.newLabel();
+	syn lazy soot.jimple.Stmt ConditionalExpr.soot_then_branch_label() = this.newLabel();
+	eq IfStmt.getCondition().condition_false_label() = this.soot_else_branch_label();
+	eq IfStmt.getCondition().condition_true_label() = this.soot_then_branch_label();
+	eq WhileStmt.getCondition().condition_false_label() = this.soot_end_label();
+	eq WhileStmt.getCondition().condition_true_label() = this.soot_stmt_label();
+	eq DoStmt.getCondition().condition_false_label() = this.soot_end_label();
+	eq DoStmt.getCondition().condition_true_label() = this.soot_begin_label();
+	eq ForStmt.getCondition().condition_false_label() = this.soot_end_label();
+	eq ForStmt.getCondition().condition_true_label() = this.soot_begin_label();
+	
+	inh soot.jimple.Stmt Expr.condition_false_label();
+	eq Program.getCompilationUnit(int i).condition_false_label() {
+		throw new Error("condition_false_label not implemented");
+	}
+	
+	inh soot.jimple.Stmt Expr.condition_true_label();
+	eq Program.getCompilationUnit(int i).condition_true_label() {
+		throw new Error("condition_true_label not implemented");
+	}
+	
+	eq LogNotExpr.getOperand().condition_false_label() = this.true_label();
+	eq LogNotExpr.getOperand().condition_true_label() = this.false_label();
+	
+	eq ConditionalExpr.getCondition().condition_false_label() = this.soot_else_branch_label();
+	eq ConditionalExpr.getCondition().condition_true_label() = this.soot_then_branch_label();
+	eq ConditionalExpr.getTrueExpr().condition_false_label() = this.false_label();
+	eq ConditionalExpr.getTrueExpr().condition_true_label() = this.true_label();
+	eq ConditionalExpr.getFalseExpr().condition_false_label() = this.false_label();
+	eq ConditionalExpr.getFalseExpr().condition_true_label() = this.true_label();
+}
