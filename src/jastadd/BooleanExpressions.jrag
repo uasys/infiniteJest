@@ -63,4 +63,23 @@ aspect BooleanExpressions {
 	eq ConditionalExpr.getTrueExpr().condition_true_label() = this.true_label();
 	eq ConditionalExpr.getFalseExpr().condition_false_label() = this.false_label();
 	eq ConditionalExpr.getFalseExpr().condition_true_label() = this.true_label();
+	
+	eq RelationalExpr.getLeftOperand().condition_false_label() = this.false_label();
+	eq RelationalExpr.getLeftOperand().condition_true_label() = this.true_label();
+	eq RelationalExpr.getRightOperand().condition_false_label() = this.false_label();
+	eq RelationalExpr.getRightOperand().condition_true_label() = this.true_label();
+	
+	syn lazy soot.jimple.Stmt AndLogicalExpr.next_test_label() = this.newLabel();
+	eq AndLogicalExpr.getLeftOperand().condition_false_label() = this.false_label();
+	eq AndLogicalExpr.getLeftOperand().condition_true_label() = this.next_test_label();
+	eq AndLogicalExpr.getRightOperand().condition_false_label() = this.false_label();
+	eq AndLogicalExpr.getRightOperand().condition_true_label() = this.true_label();
+	
+	syn lazy soot.jimple.Stmt OrLogicalExpr.next_test_label() = this.newLabel();
+	eq OrLogicalExpr.getLeftOperand().condition_false_label() = this.next_test_label();
+	eq OrLogicalExpr.getLeftOperand().condition_true_label() = this.true_label();
+	eq OrLogicalExpr.getRightOperand().condition_false_label() = this.false_label();
+	eq OrLogicalExpr.getRightOperand().condition_true_label() = this.true_label();
+	
+	
 }
