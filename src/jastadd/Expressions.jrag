@@ -444,7 +444,9 @@ aspect Expressions {
 	
 	// you just encounter a variable...
 	public soot.Value VarAccess.emit(Body b) {
+
 		Variable var = this.decl();
+		System.out.println("VarAccess + " +  var);
 		//I can't believe this distinction is made...
 		if (var instanceof VariableDeclarator) {
 			VariableDeclarator decl = (VariableDeclarator)var;			
@@ -460,14 +462,35 @@ aspect Expressions {
 			System.out.println("FieldAccess");
 			FieldDeclarator f = (FieldDeclarator)var;
 			ArrayList list = new ArrayList();
-			StaticFieldRef expr = Jimple.v().newStaticFieldRef(f.sootRef());
-			return expr;
+			
+			if (f.isStatic()) {
+				StaticFieldRef expr = Jimple.v().newStaticFieldRef(f.sootRef());
+				return expr;
+			} else {
+				System.out.println(this.prevExpr());
+				System.out.println("I AM SOMETHING ELSE" + this);
+				Local newLocal = this.getTempLocal(b);
+				InstanceFieldRef expr = Jimple.v().newInstanceFieldRef(newLocal, f.sootRef());
+				//System.out.println(expr);
+				return expr;
+			}
 		}
 		else {
 			System.out.println(" I AM SOMETHING ELSE THAT REQUIRES ACCESSOR " );
 		}
 		
 		//Just for now...
+		return null;
+	}
+	
+	public soot.Value ThisAccess.emit(Body b) {
+		System.out.println("IN A THIS ACCESS");
+		return null;
+	}
+	
+	public soot.Value TypeAccess.emit(Body b) {
+		System.out.println("This is a type access");
+		System.out.println(this.prettyPrint());
 		return null;
 	}
 
@@ -492,7 +515,7 @@ aspect Expressions {
 	}
 	
 	public soot.Value MethodAccess.emit(Body b) {
-		System.out.println("Method Access");
+		System.out.println("METHOD ACCESS");
 		soot.Value v = this.prevExpr().emit(b);
 		Local newLocal = this.prevExpr().saveInTempLocal(b, v);
 		MethodDecl decl = this.decl();

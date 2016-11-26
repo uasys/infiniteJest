@@ -128,6 +128,7 @@
   	for (int i = 0; i < this.getNumParameter(); i++) {
   		parameters.add(this.getParameter(i).type().sootType());
   	}
+  	//System.out.println("CONSTRUCTOR" + this.type().getSootClassDecl().getSuperclass());
   	SootMethodRef ref = Scene.v().makeConstructorRef(this.hostType().getSootClassDecl(), parameters);
   	return ref;
   }
