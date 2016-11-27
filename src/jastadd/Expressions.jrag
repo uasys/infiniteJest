@@ -227,7 +227,9 @@ aspect Expressions {
 	
 	//TODO:
 	public soot.Value AssignSimpleExpr.emit(Body b) {
+		System.out.println("ASSIGN SIMPLE EXPR" + this.getSource());
 		soot.Value rhs = this.getSource().emit(b);
+		System.out.println("ASSIGN SIMPLE EXPR" + this.getDest());
 		soot.Value lhs = this.getDest().emit(b);
 		Chain units = b.getUnits();
 		units.add(Jimple.v().newAssignStmt(lhs, rhs));
@@ -444,8 +446,13 @@ aspect Expressions {
 	
 	// you just encounter a variable...
 	public soot.Value VarAccess.emit(Body b) {
-
+		soot.Value _this = null;
 		Variable var = this.decl();
+		if (this.hasPrevExpr()) {
+			if (this.prevExpr() instanceof ThisAccess) {
+				 _this = this.prevExpr().emit(b);
+			}
+		}
 		System.out.println("VarAccess + " +  var);
 		//I can't believe this distinction is made...
 		if (var instanceof VariableDeclarator) {
@@ -459,15 +466,20 @@ aspect Expressions {
 			return decl.local;
 		}
 		else if (var instanceof FieldDeclarator) {
-			System.out.println("FieldAccess");
 			FieldDeclarator f = (FieldDeclarator)var;
+						System.out.println("FieldAccess " + f.prettyPrint());
+			
 			ArrayList list = new ArrayList();
 			
 			if (f.isStatic()) {
+				System.out.println("STATIC" + f.prettyPrint());
 				StaticFieldRef expr = Jimple.v().newStaticFieldRef(f.sootRef());
 				return expr;
+			} else if (this.hasPrevExpr() && this.prevExpr() instanceof ThisAccess) {
+				System.out.println("THIS");
+				InstanceFieldRef expr = Jimple.v().newInstanceFieldRef(_this, f.sootRef());
+				return expr;
 			} else {
-				System.out.println(this.prevExpr());
 				System.out.println("I AM SOMETHING ELSE" + this);
 				Local newLocal = this.getTempLocal(b);
 				InstanceFieldRef expr = Jimple.v().newInstanceFieldRef(newLocal, f.sootRef());
@@ -483,16 +495,11 @@ aspect Expressions {
 		return null;
 	}
 	
+
 	public soot.Value ThisAccess.emit(Body b) {
-		System.out.println("IN A THIS ACCESS");
-		return null;
+		return b.getThisLocal();
 	}
-	
-	public soot.Value TypeAccess.emit(Body b) {
-		System.out.println("This is a type access");
-		System.out.println(this.prettyPrint());
-		return null;
-	}
+
 
 	public soot.Value TypeDecl.emitCastTo(soot.Value v, TypeDecl type) {
 		if (this == type) return v;
@@ -533,6 +540,15 @@ aspect Expressions {
 	public static soot.jimple.ArrayRef ArrayDecl.newArrayRef(Value base, Value index) {
 		return Jimple.v().newArrayRef(base, index);
 	}
+	/*
+	public soot.Value Dot.emit(Body b) {
+		if (!(this.getLeft() instanceof TypeAccess))
+			this.getLeft().emit(b);
+		if (!(this.getRight() instanceof TypeAccess))
+			this.getRight().emit(b);
+		
+		return null;
+	}*/
 	
 	/*
 	public soot.Value CastExpr.emit(Body b) {

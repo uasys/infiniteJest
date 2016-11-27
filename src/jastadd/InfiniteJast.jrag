@@ -160,12 +160,11 @@ aspect InfiniteJast {
   }
   
   public void ExprStmt.jimplify(JimpleBody body) {
-  	System.out.println("ExprStmt");
+  	System.out.println("ExprStmt" + this.getExpr());
   	Expr result = this.getExpr();
   	soot.Value value = result.emit(body);
   	if (result.type().isVoid()) {
 		body.getUnits().add(Jimple.v().newInvokeStmt(value));
-		
   	} else {
   		result.saveInTempLocal(body, value);
   	}
