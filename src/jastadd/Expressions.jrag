@@ -227,9 +227,9 @@ aspect Expressions {
 	
 	//TODO:
 	public soot.Value AssignSimpleExpr.emit(Body b) {
-		System.out.println("ASSIGN SIMPLE EXPR" + this.getSource());
+		//System.out.println("ASSIGN SIMPLE EXPR" + this.getSource().prettyPrint());
 		soot.Value rhs = this.getSource().emit(b);
-		System.out.println("ASSIGN SIMPLE EXPR" + this.getDest());
+		//System.out.println("ASSIGN SIMPLE EXPR" + this.getDest().prettyPrint());
 		soot.Value lhs = this.getDest().emit(b);
 		Chain units = b.getUnits();
 		units.add(Jimple.v().newAssignStmt(lhs, rhs));
@@ -463,6 +463,7 @@ aspect Expressions {
 		else if (var instanceof ParameterDeclaration) {
 			ParameterDeclaration decl = (ParameterDeclaration)var;
 			//TODO: host thing...
+			System.out.println(decl.local);
 			return decl.local;
 		}
 		else if (var instanceof FieldDeclarator) {
@@ -536,9 +537,14 @@ aspect Expressions {
 		VirtualInvokeExpr expr = Jimple.v().newVirtualInvokeExpr(newLocal, decl.sootRef(), args);
 		return expr;
 	}
-	
+		
 	public static soot.jimple.ArrayRef ArrayDecl.newArrayRef(Value base, Value index) {
 		return Jimple.v().newArrayRef(base, index);
+	}
+	
+	public soot.Value SuperConstructorAccess.emit(Body b) {
+		System.out.println("Super constructor access" + this.prettyPrint());
+		return null;
 	}
 	/*
 	public soot.Value Dot.emit(Body b) {

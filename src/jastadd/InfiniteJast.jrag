@@ -27,7 +27,7 @@ aspect InfiniteJast {
   }
   
   public void ClassDecl.jimplify() {
-
+	System.out.println("ClassDecl " + this.prettyPrint());
     SootClass sClass = this.getSootClassDecl();
     if (this.hasImplicitConstructor()) {
     	this.getImplicitConstructor().jimplify();
@@ -43,9 +43,8 @@ aspect InfiniteJast {
 		Printer.v().printTo(sClass, writerOut);
 		writerOut.flush();
 		streamOut.close();
-
+    /*
 		
-		/*
     	String fileName = SourceLocator.v().getFileNameFor(sClass, soot.options.Options.output_format_class);
     	OutputStream streamOut = new FileOutputStream(fileName);
 		PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut));
@@ -53,7 +52,7 @@ aspect InfiniteJast {
 	  	jasminClass.print(writerOut);
 	  	writerOut.flush();
 	  	streamOut.close();
-	  	*/
+	*/
 	} catch (Exception e) {
 		System.out.println(e.getMessage());
 		System.out.println("There was an error writing the jimple file");
@@ -61,20 +60,23 @@ aspect InfiniteJast {
   }
   
   public void InterfaceDecl.jimplify() {
-  	SootClass sc = this.getSootClassDecl();
-  	sc.setResolvingLevel(SootClass.HIERARCHY);
+  	SootClass sClass = this.getSootClassDecl();
+  	sClass.setResolvingLevel(SootClass.HIERARCHY);
   	super.jimplify();
-  	sc.setResolvingLevel(SootClass.SIGNATURES);
+  	sClass.setResolvingLevel(SootClass.SIGNATURES);
   	
   	try {
-    	String fileName = SourceLocator.v().getFileNameFor(sc, soot.options.Options.output_format_jimple);
+    	String fileName = SourceLocator.v().getFileNameFor(sClass, soot.options.Options.output_format_jimple);
 		OutputStream streamOut = new FileOutputStream(fileName);
 		PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut));
-		Printer.v().printTo(sc, writerOut);
+		Printer.v().printTo(sClass, writerOut);
 		writerOut.flush();
 		streamOut.close();
 		/*
-	  	JasminClass jasminClass = new soot.jimple.JasminClass(sc);
+	  	String fileName = SourceLocator.v().getFileNameFor(sClass, soot.options.Options.output_format_class);
+    	OutputStream streamOut = new FileOutputStream(fileName);
+		PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut));
+	  	JasminClass jasminClass = new soot.jimple.JasminClass(sClass);
 	  	jasminClass.print(writerOut);
 	  	writerOut.flush();
 	  	streamOut.close();
@@ -109,9 +111,12 @@ aspect InfiniteJast {
 		method.getActiveBody().getUnits().add(Jimple.v().newReturnVoidStmt());
 	}
   }
-    
+  
+  
   public void ConstructorDecl.jimplify() {
+  	System.out.println("I AM IN A CONSTRUCTOR.." + this.prettyPrint());
 	SootMethod method = this.sootMethod();
+	System.out.println("I got the method...");
 	Local newLocal = Jimple.v().newLocal("this", RefType.v(this.getID()));
 	method.getActiveBody().getLocals().add(newLocal);
 	//RefType.v(this.getID()).getSootClass().getMethod("<init>");
@@ -120,15 +125,16 @@ aspect InfiniteJast {
 	//System.out.println(RefType.v(this.getID()));
 	method.getActiveBody().getUnits().add(Jimple.v().newIdentityStmt(newLocal,  Jimple.v().newThisRef(RefType.v(this.getID()))));
 	
-	System.out.println("really before");
-	System.out.println("before");
 	SpecialInvokeExpr expr = Jimple.v().newSpecialInvokeExpr(newLocal, 	this.hostType().getSootClassDecl().getSuperclass().getMethodByName("<init>").makeRef());
-	System.out.println("after");
 	method.getActiveBody().getUnits().add(Jimple.v().newInvokeStmt(expr));
 	
+	if (!this.isImplicitConstructor())
 	for (int i = 0; i < this.getNumChild(); i++) {
+		System.out.println("Child " + this.getChild(i).prettyPrint());
 		this.getChild(i).jimplify((JimpleBody)method.getActiveBody());
   	}
+  	  		method.getActiveBody().getUnits().add(Jimple.v().newReturnVoidStmt());
+  	
   }
   
   
@@ -163,11 +169,13 @@ aspect InfiniteJast {
   	System.out.println("ExprStmt" + this.getExpr());
   	Expr result = this.getExpr();
   	soot.Value value = result.emit(body);
+  	System.out.println(result.type().prettyPrint());
   	if (result.type().isVoid()) {
 		body.getUnits().add(Jimple.v().newInvokeStmt(value));
   	} else {
   		result.saveInTempLocal(body, value);
   	}
+  	System.out.println("After expr");
   }
   
   public void Expr.emitEvalBranch(Body b) {

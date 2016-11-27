@@ -27,6 +27,7 @@ aspect _SootClinit {
   		typeDecl.jimplify();
   	}
   	for (int i = 0; i < this.getNumBodyDecl(); i++) {
+  		System.out.println("GETTING A BODY" + this.getBodyDecl(i));
   		this.getBodyDecl(i).jimplify();
   	}
   }
