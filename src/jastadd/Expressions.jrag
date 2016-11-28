@@ -15,6 +15,12 @@ aspect Expressions {
 		return Expr.temp++;
 	}
 	
+	public static Local Expr.getTempLocal(Body b, Expr e) {
+		Local local = Jimple.v().newLocal("temp$" + Expr.getTempIdx(), e.type().sootType()); 
+		b.getLocals().add(local);
+		return local;
+	}
+	
 	public Local Expr.getTempLocal(Body b) {
 		Local local = Jimple.v().newLocal("temp$" + Expr.getTempIdx(), this.type().sootType());
 		System.out.println("temp$ has type " + this.type().sootType());

@@ -60,7 +60,7 @@
   	TypeDecl typeDecl = this.hostType();
   	if (typeDecl.needsEnclosing()) {
   		System.out.println("needsEnclosing " + typeDecl.enclosingType().name());
-  		Local newLocal = Jimple.v().newLocal(typeDecl.enclosingType().name(), typeDecl.enclosingType().sootType());
+  		Local newLocal = Jimple.v().newLocal("temp$" + Expr.getTempIdx(), typeDecl.enclosingType().sootType());
   		sootParams.put(newLocal, typeDecl.enclosingType().sootType());
   	}
   	if (typeDecl.needsSuperEnclosing()) {
@@ -90,6 +90,7 @@
   
   public SootMethod ConstructorDecl.sootMethod;
   syn lazy SootMethod ConstructorDecl.sootMethod() {
+  
   	SootClass sClass = this.hostType().getSootClassDecl();
   	java.util.LinkedHashMap<Local, Type> params = this.getParametersSoot();
   	java.util.List<Type> types = new ArrayList<Type>(params.values());
@@ -116,21 +117,26 @@
   }
   
     syn lazy SootMethodRef ConstructorDecl.sootRef() {
-  	ArrayList parameters = new ArrayList();
-  	TypeDecl typeDecl = this.hostType();
-  	if (typeDecl.needsEnclosing()) {
-  		parameters.add(typeDecl.enclosingType().sootType());
-  	}
-  	if (typeDecl.needsSuperEnclosing()) {
-  		TypeDecl superClass = ((ClassDecl)typeDecl).superclass();
-  		parameters.add(superClass.enclosingType().sootType());
-  	}
-  	for (int i = 0; i < this.getNumParameter(); i++) {
-  		parameters.add(this.getParameter(i).type().sootType());
-  	}
-  	//System.out.println("CONSTRUCTOR" + this.type().getSootClassDecl().getSuperclass());
-  	SootMethodRef ref = Scene.v().makeConstructorRef(this.hostType().getSootClassDecl(), parameters);
-  	return ref;
+  		ArrayList parameters = new ArrayList();
+  		TypeDecl typeDecl = this.hostType();
+  		if (typeDecl.needsEnclosing()) {
+  			System.out.println("needs enclosing");
+  			System.out.println(typeDecl.enclosingType().prettyPrint());
+  			parameters.add(typeDecl.enclosingType().sootType());
+  		}
+  		if (typeDecl.needsSuperEnclosing()) {
+  			System.out.println("needs super enclosing");
+  			TypeDecl superClass = ((ClassDecl)typeDecl).superclass();
+  			System.out.println(superClass.enclosingType().prettyPrint());
+  			parameters.add(superClass.enclosingType().sootType());
+  		}
+  		for (int i = 0; i < this.getNumParameter(); i++) {
+  			System.out.println(this.getParameter(i).type().prettyPrint());
+  			parameters.add(this.getParameter(i).type().sootType());
+  		}
+  		//System.out.println("CONSTRUCTOR" + this.type().getSootClassDecl().getSuperclass());
+  		SootMethodRef ref = Scene.v().makeConstructorRef(this.hostType().getSootClassDecl(), parameters);
+  		return ref;
   }
   
   public SootField FieldDeclarator.sootField;

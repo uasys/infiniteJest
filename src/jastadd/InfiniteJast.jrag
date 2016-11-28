@@ -114,10 +114,8 @@ aspect InfiniteJast {
   
   
   public void ConstructorDecl.jimplify() {
-  	System.out.println("I AM IN A CONSTRUCTOR.." + this.prettyPrint());
 	SootMethod method = this.sootMethod();
-	System.out.println("I got the method...");
-	Local newLocal = Jimple.v().newLocal("this", RefType.v(this.getID()));
+	Local newLocal = Jimple.v().newLocal("this", RefType.v(this.hostType().jvmName()));
 	method.getActiveBody().getLocals().add(newLocal);
 	//RefType.v(this.getID()).getSootClass().getMethod("<init>");
 	
