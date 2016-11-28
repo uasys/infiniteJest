@@ -59,8 +59,10 @@
   	java.util.LinkedHashMap<Local, Type> sootParams = new java.util.LinkedHashMap<Local, Type>();
   	TypeDecl typeDecl = this.hostType();
   	if (typeDecl.needsEnclosing()) {
-  		System.out.println("needsEnclosing " + typeDecl.enclosingType().name());
-  		Local newLocal = Jimple.v().newLocal("temp$" + Expr.getTempIdx(), typeDecl.enclosingType().sootType());
+  			System.out.println("HELLO !!! needs enclosing");
+  			System.out.println(typeDecl.enclosingType().prettyPrint());
+  			SootField f = new SootField("this$0", typeDecl.enclosingType().sootType(), typeDecl.enclosingType().sootTypeModifiers());
+  			this.hostType().getSootClassDecl().addField(f);  		Local newLocal = Jimple.v().newLocal("temp$" + Expr.getTempIdx(), typeDecl.enclosingType().sootType());
   		sootParams.put(newLocal, typeDecl.enclosingType().sootType());
   	}
   	if (typeDecl.needsSuperEnclosing()) {
@@ -120,8 +122,7 @@
   		ArrayList parameters = new ArrayList();
   		TypeDecl typeDecl = this.hostType();
   		if (typeDecl.needsEnclosing()) {
-  			System.out.println("needs enclosing");
-  			System.out.println(typeDecl.enclosingType().prettyPrint());
+
   			parameters.add(typeDecl.enclosingType().sootType());
   		}
   		if (typeDecl.needsSuperEnclosing()) {

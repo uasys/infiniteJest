@@ -27,11 +27,8 @@ aspect InfiniteJast {
   }
   
   public void ClassDecl.jimplify() {
-	System.out.println("ClassDecl " + this.prettyPrint());
     SootClass sClass = this.getSootClassDecl();
-    if (this.hasImplicitConstructor()) {
-    	this.getImplicitConstructor().jimplify();
-    }
+    if (this.hasImplicitConstructor()) { this.getImplicitConstructor().jimplify(); }
     sClass.setResolvingLevel(SootClass.HIERARCHY);
     super.jimplify();
     sClass.setResolvingLevel(SootClass.SIGNATURES);
@@ -102,6 +99,7 @@ aspect InfiniteJast {
   }
   
   public void MethodDecl.jimplify() {
+  	Expr.setTempIdx(0);
   	SootMethod method = this.sootMethod();
   	for (int i = 0; i < this.getNumChild(); i++) {
 		this.getChild(i).jimplify((JimpleBody)method.getActiveBody());
@@ -112,8 +110,9 @@ aspect InfiniteJast {
 	}
   }
   
-  
+  public Local ConstructorDecl.local = null;
   public void ConstructorDecl.jimplify() {
+  	Expr.setTempIdx(0);
 	SootMethod method = this.sootMethod();
 	Local newLocal = Jimple.v().newLocal("this", RefType.v(this.hostType().jvmName()));
 	method.getActiveBody().getLocals().add(newLocal);
@@ -131,7 +130,9 @@ aspect InfiniteJast {
 		System.out.println("Child " + this.getChild(i).prettyPrint());
 		this.getChild(i).jimplify((JimpleBody)method.getActiveBody());
   	}
-  	  		method.getActiveBody().getUnits().add(Jimple.v().newReturnVoidStmt());
+  	//TODO HERE
+	//InstanceFieldRef expr = Jimple.v().newInstanceFieldRef(newLocal, );
+  	method.getActiveBody().getUnits().add(Jimple.v().newReturnVoidStmt());
   	
   }
   
