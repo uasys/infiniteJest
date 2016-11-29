@@ -100,6 +100,7 @@ aspect InfiniteJast {
   public void MethodDecl.jimplify() {
   	Expr.setTempIdx(0);
   	SootMethod method = this.sootMethod();
+  	System.out.println("HELLO WORLD " + this.prettyPrint());
   	for (int i = 0; i < this.getNumChild(); i++) {
 		this.getChild(i).jimplify((JimpleBody)method.getActiveBody());
   	}
@@ -195,14 +196,14 @@ aspect InfiniteJast {
   	this.getThen().jimplify(body);
   	
   	if (this.getThen().canCompleteNormally() && this.hasElse()) {
-  		body.getUnits().add(Jimple.v().newGotoStmt(soot_else_branch_label()));
+  		body.getUnits().add(Jimple.v().newGotoStmt(endBranch));
   	}
   	if (this.hasElse()) {
   	  	body.getUnits().add(soot_else_branch_label());
   		this.getElse().jimplify(body);
-  	} else {
+  	} 
   		body.getUnits().add(endBranch);
-  	}
+  	
   	
   }
   

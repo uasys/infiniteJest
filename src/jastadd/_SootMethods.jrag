@@ -1,8 +1,10 @@
  aspect _SootMethods {
   syn java.util.LinkedHashMap<Local, Type> MethodDecl.getParametersSoot() {
+  	System.out.println("I AM IN PARAMETERS SOOT");
   	List<ParameterDeclaration> params = this.getParameterList();
   	java.util.LinkedHashMap<Local, Type> sootParams = new java.util.LinkedHashMap<Local, Type>();
   	for (ParameterDeclaration param : params) {
+  		System.out.println(param.type().prettyPrint());
   		Local newLocal = Jimple.v().newLocal(param.name(), param.type().sootType());
   		sootParams.put(newLocal, param.type().sootType());
   		param.local = newLocal;
