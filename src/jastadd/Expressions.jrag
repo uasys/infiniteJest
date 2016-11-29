@@ -444,6 +444,13 @@ aspect Expressions {
 		return retval;
 	}
 	
+	public soot.Value LEExpr.emit(Body b) {
+		Local lhs = this.getLeftOperandLocal(b);
+		Local rhs = this.getRightOperandLocal(b);
+		soot.jimple.LeExpr retval = Jimple.v().newLeExpr(lhs, rhs);
+		return retval;
+	}
+	
 	
 	/*
 	public soot.Value AssingPlusExpr.emit(Body b) {
