@@ -59,20 +59,16 @@
   	java.util.LinkedHashMap<Local, Type> sootParams = new java.util.LinkedHashMap<Local, Type>();
   	TypeDecl typeDecl = this.hostType();
   	if (typeDecl.needsEnclosing()) {
-  			System.out.println("HELLO !!! needs enclosing");
-  			System.out.println(typeDecl.enclosingType().prettyPrint());
   			SootField f = new SootField("this$0", typeDecl.enclosingType().sootType(), typeDecl.enclosingType().sootTypeModifiers());
   			this.hostType().getSootClassDecl().addField(f);  		Local newLocal = Jimple.v().newLocal("temp$" + Expr.getTempIdx(), typeDecl.enclosingType().sootType());
   		sootParams.put(newLocal, typeDecl.enclosingType().sootType());
   	}
   	if (typeDecl.needsSuperEnclosing()) {
   		TypeDecl superClass = ((ClassDecl)typeDecl).superclass();
-  	  	System.out.println("needsSuperEnclosing " + superClass.enclosingType().name());
   		Local newLocal = Jimple.v().newLocal(superClass.enclosingType().name(), superClass.enclosingType().sootType());
   		sootParams.put(newLocal, superClass.enclosingType().sootType());
   	}
   	for (ParameterDeclaration param : params) {
-  		System.out.println("param " + param.name());
   		Local newLocal = Jimple.v().newLocal(param.name(), param.type().sootType());
   		sootParams.put(newLocal, param.type().sootType());
   		param.local = newLocal;
@@ -108,7 +104,6 @@
     this.addParamsToBody(body, params);
     
     if (this.hasConstructorInvocation()) {
-    	System.out.println("CONSTRUCTOR INVOKATION " + this.getConstructorInvocation().prettyPrint());
     	//super jimplify other statements...
     	//Local newLocal = this.getConstructorInvocation().emit(body);
     	//Chain units = body.getUnits();
@@ -126,13 +121,10 @@
   			parameters.add(typeDecl.enclosingType().sootType());
   		}
   		if (typeDecl.needsSuperEnclosing()) {
-  			System.out.println("needs super enclosing");
   			TypeDecl superClass = ((ClassDecl)typeDecl).superclass();
-  			System.out.println(superClass.enclosingType().prettyPrint());
   			parameters.add(superClass.enclosingType().sootType());
   		}
   		for (int i = 0; i < this.getNumParameter(); i++) {
-  			System.out.println(this.getParameter(i).type().prettyPrint());
   			parameters.add(this.getParameter(i).type().sootType());
   		}
   		//System.out.println("CONSTRUCTOR" + this.type().getSootClassDecl().getSuperclass());

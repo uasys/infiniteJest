@@ -83,7 +83,6 @@ aspect BooleanExpressions {
 	
 	
 	public soot.Value RelationalExpr.emit(Body b) { 
-		System.out.println("Hello world");
 		return this.emitBooleanCondition(b);
 	}
 	

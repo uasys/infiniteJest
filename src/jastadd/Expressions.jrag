@@ -23,7 +23,6 @@ aspect Expressions {
 	
 	public Local Expr.getTempLocal(Body b) {
 		Local local = Jimple.v().newLocal("temp$" + Expr.getTempIdx(), this.type().sootType());
-		System.out.println("temp$ has type " + this.type().sootType());
 		b.getLocals().add(local);
 		return local;
 	}
@@ -144,7 +143,6 @@ aspect Expressions {
 		//TODO: previous code had a lot of stuff in it... Was it just for eval to work?
 		if (this.isConstant()) return this.emitConstant(this.constant());
 		
-		System.out.println(this.getExpr().prettyPrint());
 		soot.Value casted = Expr.newCastExpr(this.getExpr().emit(b), this.type());
 		Local local = this.getTempLocal(b);
 		b.getUnits().add(Jimple.v().newAssignStmt(local, casted));
@@ -459,7 +457,6 @@ aspect Expressions {
 				 _this = this.prevExpr().emit(b);
 			}
 		}
-		System.out.println("VarAccess + " +  var);
 		//I can't believe this distinction is made...
 		if (var instanceof VariableDeclarator) {
 			VariableDeclarator decl = (VariableDeclarator)var;			
@@ -469,25 +466,20 @@ aspect Expressions {
 		else if (var instanceof ParameterDeclaration) {
 			ParameterDeclaration decl = (ParameterDeclaration)var;
 			//TODO: host thing...
-			System.out.println(decl.local);
 			return decl.local;
 		}
 		else if (var instanceof FieldDeclarator) {
 			FieldDeclarator f = (FieldDeclarator)var;
-						System.out.println("FieldAccess " + f.prettyPrint());
 			
 			ArrayList list = new ArrayList();
 			
 			if (f.isStatic()) {
-				System.out.println("STATIC" + f.prettyPrint());
 				StaticFieldRef expr = Jimple.v().newStaticFieldRef(f.sootRef());
 				return expr;
 			} else if (this.hasPrevExpr() && this.prevExpr() instanceof ThisAccess) {
-				System.out.println("THIS");
 				InstanceFieldRef expr = Jimple.v().newInstanceFieldRef(_this, f.sootRef());
 				return expr;
 			} else {
-				System.out.println("I AM SOMETHING ELSE" + this);
 				Local newLocal = this.getTempLocal(b);
 				InstanceFieldRef expr = Jimple.v().newInstanceFieldRef(newLocal, f.sootRef());
 				//System.out.println(expr);
@@ -495,7 +487,6 @@ aspect Expressions {
 			}
 		}
 		else {
-			System.out.println(" I AM SOMETHING ELSE THAT REQUIRES ACCESSOR " );
 		}
 		
 		//Just for now...
@@ -529,7 +520,6 @@ aspect Expressions {
 	}
 	
 	public soot.Value MethodAccess.emit(Body b) {
-		System.out.println("METHOD ACCESS");
 		soot.Value v = this.prevExpr().emit(b);
 		Local newLocal = this.prevExpr().saveInTempLocal(b, v);
 		MethodDecl decl = this.decl();
@@ -549,7 +539,6 @@ aspect Expressions {
 	}
 	
 	public soot.Value SuperConstructorAccess.emit(Body b) {
-		System.out.println("Super constructor access" + this.prettyPrint());
 		return null;
 	}
 	/*
