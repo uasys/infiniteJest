@@ -82,7 +82,8 @@ aspect BooleanExpressions {
 	eq OrLogicalExpr.getRightOperand().condition_true_label() = this.true_label();
 	
 	
-	public soot.Value RelationalExpr.emit(Body b) { 
+	public soot.Value RelationalExpr.emit(Body b) {
+	System.out.println("RELATIONAL EXPR");
 		return this.emitBooleanCondition(b);
 	}
 	
